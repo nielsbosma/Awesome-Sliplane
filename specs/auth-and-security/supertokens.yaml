@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: SuperTokens
+  description: Open source authentication core with email/password, passwordless, social login, sessions, MFA and multi-tenancy. Your backend talks to it through the SuperTokens SDKs.
+  icon: https://raw.githubusercontent.com/supertokens/supertokens-logo/master/images/Artboard%20%E2%80%93%2027%402x.png
+  docs: https://supertokens.com/docs/deployment/self-host-supertokens
+
+server:
+  minimum: starter
+  recommended: base
+
+secrets:
+  api_key:
+    format: hex
+    length: 64
+    label: Core API Key
+    show: true
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  core:
+    image: docker.io/supertokens/supertokens-postgresql:12.3.1
+    public: true
+    port: 3567
+    healthcheck: /hello
+    env:
+      API_KEYS: ${{ secrets.api_key }}
+      DISABLE_TELEMETRY: true
+      POSTGRESQL_HOST: ${{ databases.db.host }}
+      POSTGRESQL_PORT: ${{ databases.db.port }}
+      POSTGRESQL_DATABASE_NAME: ${{ databases.db.database }}
+      POSTGRESQL_USER: ${{ databases.db.user }}
+      POSTGRESQL_PASSWORD: ${{ databases.db.password }}
+
+done:
+  open: ${{ services.core.url }}/hello
+  message: The core is running when this page says Hello. In your backend's SuperTokens SDK init, set connectionURI to ${{ services.core.url }} and apiKey to the Core API Key below. The user management dashboard is served by your backend at /auth/dashboard.

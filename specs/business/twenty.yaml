@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Twenty
+  description: Open-source CRM, a modern alternative to Salesforce. Track companies, people and opportunities in customizable objects, views and workflows.
+  icon: https://raw.githubusercontent.com/twentyhq/twenty/main/packages/twenty-front/public/images/icons/windows11/Square44x44Logo.scale-400.png
+  docs: https://docs.twenty.com/developers/self-host/capabilities/docker-compose
+
+server:
+  minimum: medium
+  recommended: large
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends workspace invitations, password resets and email verification links.
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+  redis:
+    engine: redis
+
+volumes:
+  twenty-storage:
+    description: Uploaded files and attachments, shared by the server and worker
+
+services:
+  server:
+    image: docker.io/twentycrm/twenty:v2.48.0
+    public: true
+    port: 3000
+    healthcheck: /healthz
+    volumes:
+      - name: twenty-storage
+        mountPath: /app/packages/twenty-server/.local-storage
+    env:
+      NODE_PORT: 3000
+      SERVER_URL: ${{ services.server.url }}
+      PG_DATABASE_URL: ${{ databases.db.url }}
+      REDIS_URL: ${{ databases.redis.url }}
+      ENCRYPTION_KEY: ${{ secret(32) }}
+      STORAGE_TYPE: local
+      EMAIL_DRIVER: ${{ if(addons.email.enabled, 'smtp', '') }}
+      EMAIL_FROM_ADDRESS: ${{ addons.email.from }}
+      EMAIL_FROM_NAME: ${{ if(addons.email.enabled, 'Twenty', '') }}
+      EMAIL_SMTP_HOST: ${{ addons.email.host }}
+      EMAIL_SMTP_PORT: ${{ addons.email.port }}
+      EMAIL_SMTP_USER: ${{ addons.email.user }}
+      EMAIL_SMTP_PASSWORD: ${{ addons.email.password }}
+      EMAIL_SMTP_NO_TLS: ${{ if(addons.email.security == 'none', 'true', '') }}
+
+  worker:
+    image: docker.io/twentycrm/twenty:v2.48.0
+    cmd: yarn worker:prod
+    envFrom: server
+    dependsOn: [server]
+    volumes:
+      - name: twenty-storage
+        mountPath: /app/packages/twenty-server/.local-storage
+    env:
+      DISABLE_DB_MIGRATIONS: true
+      DISABLE_CRON_JOBS_REGISTRATION: true
+
+done:
+  open: ${{ services.server.url }}
+  message: The first start sets up the database, which takes a few minutes. Then open Twenty and sign up with email and password. The first account creates the workspace and becomes its admin.

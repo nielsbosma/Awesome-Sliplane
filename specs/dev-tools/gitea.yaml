@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Gitea
+  description: Lightweight self-hosted Git service with repositories, pull requests, issues, wikis, packages and Actions, backed by Postgres. Git over HTTPS only.
+  icon: https://raw.githubusercontent.com/go-gitea/gitea/v28.1.0/assets/logo.svg
+  docs: https://docs.gitea.com/installation/install-with-docker-rootless
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends account confirmations, password resets and notification emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  gitea:
+    image: docker.io/gitea/gitea:28.1.0-rootless
+    public: true
+    port: 3000
+    healthcheck: /api/healthz
+    volumes:
+      - name: gitea-data
+        mountPath: /var/lib/gitea
+      - name: gitea-config
+        mountPath: /etc/gitea
+    env:
+      GITEA__database__DB_TYPE: postgres
+      GITEA__database__HOST: ${{ databases.db.host }}:${{ databases.db.port }}
+      GITEA__database__NAME: ${{ databases.db.database }}
+      GITEA__database__USER: ${{ databases.db.user }}
+      GITEA__database__PASSWD: ${{ databases.db.password }}
+      GITEA__server__DOMAIN: ${{ services.gitea.host }}
+      GITEA__server__ROOT_URL: ${{ services.gitea.url }}/
+      GITEA__server__HTTP_PORT: 3000
+      GITEA__server__DISABLE_SSH: true
+      GITEA__server__START_SSH_SERVER: false
+      GITEA__security__INSTALL_LOCK: true
+      GITEA__security__SECRET_KEY: ${{ secret(64) }}
+      GITEA__security__INTERNAL_TOKEN: ${{ secret(64) }}
+      GITEA__mailer__ENABLED: ${{ addons.email.enabled }}
+      GITEA__mailer__PROTOCOL: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'smtps', if(addons.email.security == 'starttls', 'smtp+starttls', 'smtp')), '') }}
+      GITEA__mailer__SMTP_ADDR: ${{ addons.email.host }}
+      GITEA__mailer__SMTP_PORT: ${{ addons.email.port }}
+      GITEA__mailer__USER: ${{ addons.email.user }}
+      GITEA__mailer__PASSWD: ${{ addons.email.password }}
+      GITEA__mailer__FROM: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.gitea.url }}/user/sign_up
+  message: Register your account. The first account becomes the site administrator. Anyone can register until you set GITEA__service__DISABLE_REGISTRATION to true in the service's environment.

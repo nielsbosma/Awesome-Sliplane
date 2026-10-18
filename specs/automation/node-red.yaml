@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Node-RED
+  description: Low-code programming for event-driven applications. Wire together APIs, devices and online services in a browser-based flow editor with thousands of community nodes.
+  icon: https://raw.githubusercontent.com/node-red/node-red/master/packages/node_modules/@node-red/editor-client/src/images/node-red-icon.svg
+  docs: https://nodered.org/docs/getting-started/docker
+
+server:
+  minimum: starter
+  recommended: base
+
+inputs:
+  admin_user:
+    type: string
+    label: Admin Username
+    default: admin
+    pattern: ^[a-zA-Z0-9._-]+$
+  timezone:
+    type: string
+    label: Timezone
+    help: Used by time-based nodes, for example Europe/Stockholm.
+    default: Europe/Berlin
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 24
+    label: Admin Password
+    show: true
+
+services:
+  node-red:
+    image: docker.io/nodered/node-red:5.0.8
+    public: true
+    port: 1880
+    healthcheck: /
+    # Arguments for red.js (the image's entrypoint): load the editor login written by NODE_OPTIONS.
+    cmd: -D @/tmp/admin-auth.json
+    volumes:
+      - name: node-red-data
+        mountPath: /data
+    env:
+      TZ: ${{ inputs.timezone }}
+      NODE_RED_ADMIN_USER: ${{ inputs.admin_user }}
+      NODE_RED_ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      # Node-RED only takes a bcrypt hash for the editor login, so this preload hashes the
+      # password with the bundled bcryptjs and writes the adminAuth setting before Node-RED starts.
+      NODE_OPTIONS: "--import=data:text/javascript,import{createRequire}from'node:module';import{writeFileSync}from'node:fs';const{hashSync}=createRequire('/usr/src/node-red/')('bcryptjs');writeFileSync('/tmp/admin-auth.json',JSON.stringify({adminAuth:{type:'credentials',users:Array.of({username:process.env.NODE_RED_ADMIN_USER,password:hashSync(process.env.NODE_RED_ADMIN_PASSWORD,10),permissions:'\\x2a'})}}))"
+
+done:
+  open: ${{ services.node-red.url }}
+  message: Sign in to the flow editor as ${{ inputs.admin_user }} with the password below. Flows, credentials and installed nodes are kept on the node-red-data volume.

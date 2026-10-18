@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Linkwarden
+  description: Collaborative bookmark manager that saves a screenshot, PDF and readable copy of every page you bookmark, with collections, tags, full-text search and optional AI tagging.
+  icon: https://raw.githubusercontent.com/linkwarden/linkwarden/main/assets/logo.png
+  docs: https://docs.linkwarden.app/self-hosting/setup
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  meili_key:
+    format: alphanumeric
+    length: 32
+
+addons:
+  llm:
+    use: llm
+    optional: true
+    reason: Suggests tags for new links. Turn on auto-tagging per user under Settings > Preferences.
+    providers: [anthropic, openai, openrouter, opper, berget, openai-compatible]
+    default: anthropic
+  email:
+    use: smtp
+    optional: true
+    reason: Sends email verification and password reset links. With email on, new accounts must confirm their address.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+volumes:
+  linkwarden-data:
+    description: Archived screenshots, PDFs and page copies
+
+services:
+  linkwarden:
+    image: ghcr.io/linkwarden/linkwarden:v2.16.3
+    public: true
+    port: 3000
+    healthcheck: /login
+    dependsOn: [meilisearch]
+    volumes:
+      - name: linkwarden-data
+        mountPath: /data/data
+    env:
+      NEXTAUTH_URL: ${{ services.linkwarden.url }}/api/v1/auth
+      NEXTAUTH_SECRET: ${{ secret(64) }}
+      DATABASE_URL: ${{ databases.db.url }}
+      MEILI_HOST: http://${{ services.meilisearch.internalHost }}:7700
+      MEILI_MASTER_KEY: ${{ secrets.meili_key }}
+      ANTHROPIC_API_KEY: ${{ if(addons.llm.provider == 'anthropic', addons.llm.apiKey, '') }}
+      ANTHROPIC_MODEL: ${{ if(addons.llm.provider == 'anthropic', addons.llm.model, '') }}
+      OPENROUTER_API_KEY: ${{ if(addons.llm.provider == 'openrouter', addons.llm.apiKey, '') }}
+      OPENROUTER_MODEL: ${{ if(addons.llm.provider == 'openrouter', addons.llm.model, '') }}
+      OPENAI_API_KEY: ${{ if(addons.llm.enabled, if(addons.llm.provider == 'anthropic', '', if(addons.llm.provider == 'openrouter', '', addons.llm.apiKey ?? 'none')), '') }}
+      OPENAI_MODEL: ${{ if(addons.llm.provider == 'anthropic', '', if(addons.llm.provider == 'openrouter', '', addons.llm.model)) }}
+      CUSTOM_OPENAI_BASE_URL: ${{ if(addons.llm.provider == 'anthropic', '', if(addons.llm.provider == 'openrouter', '', addons.llm.baseUrl)) }}
+      NEXT_PUBLIC_EMAIL_PROVIDER: ${{ addons.email.enabled }}
+      EMAIL_FROM: ${{ addons.email.from }}
+      EMAIL_SERVER: ${{ addons.email.url }}
+      BASE_URL: ${{ if(addons.email.enabled, services.linkwarden.url, '') }}
+
+  meilisearch:
+    image: docker.io/getmeili/meilisearch:v1.13.3
+    port: 7700
+    healthcheck: /health
+    volumes:
+      - name: linkwarden-meili
+        mountPath: /meili_data
+    env:
+      MEILI_ENV: production
+      MEILI_MASTER_KEY: ${{ secrets.meili_key }}
+      MEILI_NO_ANALYTICS: true
+
+done:
+  open: ${{ services.linkwarden.url }}/register
+  message: Create your account. The first account becomes the admin and can add more users from the admin panel. To close public sign-ups afterwards, set NEXT_PUBLIC_DISABLE_REGISTRATION to true on the linkwarden service.

@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# With no SSO provider configured, Outline shows a "Create workspace" form on first visit
+# (installation.create) and signs the admin in directly. Later sign-ins use email magic
+# links, so SMTP is required.
+
+app:
+  name: Outline
+  description: Fast, collaborative knowledge base for teams, with real-time editing, Markdown shortcuts, nested documents, search and public sharing.
+  icon: https://raw.githubusercontent.com/outline/outline/main/public/images/icon-512.png
+  docs: https://docs.getoutline.com/s/hosting/doc/docker-7pfeLP5a8t
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    reason: Outline signs people in with magic links sent by email, and emails invites and notifications.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+services:
+  outline:
+    image: docker.io/outlinewiki/outline:1.11.0
+    public: true
+    port: 3000
+    healthcheck: /_health
+    volumes:
+      - name: outline-data
+        mountPath: /var/lib/outline/data
+    env:
+      NODE_ENV: production
+      URL: ${{ services.outline.url }}
+      SECRET_KEY: ${{ hex(64) }}
+      UTILS_SECRET: ${{ hex(64) }}
+      DATABASE_URL: ${{ databases.db.url }}
+      REDIS_URL: ${{ databases.redis.url }}
+      FILE_STORAGE: local
+      FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+      FORCE_HTTPS: false
+      WEB_CONCURRENCY: 1
+      SMTP_HOST: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_USERNAME: ${{ addons.email.user }}
+      SMTP_PASSWORD: ${{ addons.email.password }}
+      SMTP_FROM_EMAIL: ${{ addons.email.from }}
+      SMTP_SECURE: ${{ if(addons.email.security == 'tls', 'true', 'false') }}
+      SMTP_DISABLE_STARTTLS: ${{ if(addons.email.security == 'none', 'true', 'false') }}
+
+done:
+  open: ${{ services.outline.url }}
+  message: Fill in the workspace name, your name and your email to create the workspace and its admin account. Next time, sign in with a link sent to that email address.

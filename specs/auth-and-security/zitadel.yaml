@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: ZITADEL
+  description: Open source identity infrastructure with OIDC, OAuth 2.0 and SAML, multi-tenancy with organizations, passkeys, MFA, social login and an audit trail of every change.
+  icon: https://raw.githubusercontent.com/zitadel/zitadel/v4.19.5/console/src/assets/icons/android-chrome-512x512.png
+  docs: https://zitadel.com/docs/self-hosting/deploy/compose
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: Login name and email address of the first admin user.
+    required: true
+  admin_password:
+    type: secret
+    label: Admin Password
+    help: At least 8 characters with an uppercase letter, a lowercase letter, a number and a symbol.
+    required: true
+    pattern: ^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends email verification, password reset and one-time code emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:v4.19.5
+    public: true
+    port: 8080
+    healthcheck: /debug/healthz
+    cmd: start-from-init --masterkeyFromEnv --tlsMode external
+    env:
+      ZITADEL_MASTERKEY: ${{ secret(32) }}
+      ZITADEL_PORT: 8080
+      ZITADEL_EXTERNALDOMAIN: ${{ services.zitadel.host }}
+      ZITADEL_EXTERNALPORT: 443
+      ZITADEL_EXTERNALSECURE: true
+      ZITADEL_TLS_ENABLED: false
+      ZITADEL_DATABASE_POSTGRES_DSN: postgresql://${{ databases.db.user }}:${{ databases.db.password }}@${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}?sslmode=prefer
+      # The new login UI is a separate app that must share this domain under /ui/v2/login,
+      # which needs path routing. The login built into this image serves /ui/login instead.
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: false
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${{ inputs.admin_email }}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS: ${{ inputs.admin_email }}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${{ inputs.admin_password }}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_SMTP_HOST: ${{ addons.email.host }}${{ if(addons.email.enabled, ':', '') }}${{ addons.email.port }}
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_SMTP_USER: ${{ addons.email.user }}
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_SMTP_PASSWORD: ${{ addons.email.password }}
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_TLS: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROM: ${{ addons.email.from }}
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROMNAME: ${{ if(addons.email.enabled, 'ZITADEL', '') }}
+
+done:
+  open: ${{ services.zitadel.url }}/ui/console
+  message: The first start sets up the database and can take a minute. Then sign in to the console with ${{ inputs.admin_email }} and the admin password you chose.

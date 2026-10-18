@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: GlitchTip
+  description: Open source error tracking, performance and uptime monitoring that works with Sentry SDKs, backed by Postgres and Redis.
+  icon: https://gitlab.com/glitchtip/glitchtip-frontend/-/raw/master/src/assets/images/glitchtip-logo-collasped.svg
+  docs: https://glitchtip.com/documentation/install
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: The first account can always register. Leave off to invite everyone else yourself.
+    default: false
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends alerts, invites and password resets. Without it, email features are turned off.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+volumes:
+  glitchtip-uploads:
+    description: Uploaded source maps and debug files
+
+services:
+  web:
+    image: docker.io/glitchtip/glitchtip:6.2.6
+    public: true
+    port: 8000
+    healthcheck: /_health/
+    cmd: sh -c "./bin/run-migrate.sh && exec ./bin/run-web.sh"
+    volumes:
+      - name: glitchtip-uploads
+        mountPath: /code/uploads
+    env:
+      SECRET_KEY: ${{ secret(50) }}
+      DATABASE_URL: ${{ databases.db.url }}
+      VALKEY_URL: ${{ databases.redis.url }}
+      GLITCHTIP_DOMAIN: ${{ services.web.url }}
+      ENABLE_USER_REGISTRATION: ${{ inputs.signups }}
+      DEFAULT_FROM_EMAIL: ${{ addons.email.from }}
+      EMAIL_HOST: ${{ addons.email.host }}
+      EMAIL_PORT: ${{ addons.email.port }}
+      EMAIL_HOST_USER: ${{ addons.email.user }}
+      EMAIL_HOST_PASSWORD: ${{ addons.email.password }}
+      EMAIL_USE_TLS: ${{ if(addons.email.security == 'starttls', 'true', '') }}
+      EMAIL_USE_SSL: ${{ if(addons.email.security == 'tls', 'true', '') }}
+
+  worker:
+    image: docker.io/glitchtip/glitchtip:6.2.6
+    cmd: ./bin/run-worker.sh
+    envFrom: web
+    dependsOn: [web]
+    volumes:
+      - name: glitchtip-uploads
+        mountPath: /code/uploads
+
+done:
+  open: ${{ services.web.url }}/register
+  message: The first start runs database migrations, which takes a minute. Then register your account, create an organization and add a project to get its DSN for your Sentry SDK.

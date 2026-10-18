@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: SearXNG
+  description: Privacy-respecting metasearch engine that combines results from many search services without tracking or profiling its users.
+  icon: https://raw.githubusercontent.com/searxng/searxng/master/client/simple/src/brand/searxng.svg
+  docs: https://docs.searxng.org/admin/installation-docker.html
+
+server:
+  minimum: starter
+  recommended: base
+
+inputs:
+  limiter:
+    type: boolean
+    label: Enable Bot Protection
+    help: Turns on the rate limiter, backed by Redis. Recommended if you share the instance publicly.
+    default: false
+
+databases:
+  redis:
+    engine: redis
+    when: ${{ inputs.limiter }}
+
+services:
+  searxng:
+    image: docker.io/searxng/searxng:2026.10.17-1c10abe2d
+    public: true
+    port: 8080
+    healthcheck: /healthz
+    volumes:
+      - name: searxng-cache
+        mountPath: /var/cache/searxng
+    env:
+      SEARXNG_BASE_URL: ${{ services.searxng.url }}/
+      SEARXNG_SECRET: ${{ secret(64) }}
+      SEARXNG_LIMITER: ${{ inputs.limiter }}
+      SEARXNG_PUBLIC_INSTANCE: ${{ inputs.limiter }}
+      SEARXNG_VALKEY_URL: ${{ if(inputs.limiter, databases.redis.url, '') }}
+
+done:
+  open: ${{ services.searxng.url }}
+  message: Search away. There are no accounts; anyone with the URL can use the instance. To make it your browser's search engine, add it from the address bar or the preferences page.

@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# Mealie generates its SECRET and SESSION_SECRET on first start and keeps them in /app/data.
+# AI providers (OpenAI or any OpenAI-compatible API) are set up in the group settings UI, not via env vars.
+
+app:
+  name: Mealie
+  description: Self-hosted recipe manager and meal planner. Import recipes from any website, plan meals, build shopping lists and share them with your household.
+  icon: https://raw.githubusercontent.com/mealie-recipes/mealie/v3.29.0/frontend/public/icons/android-chrome-512x512.png
+  docs: https://docs.mealie.io/documentation/getting-started/installation/postgres/
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: Lets visitors create their own accounts. Leave off to invite people yourself.
+    default: false
+  timezone:
+    type: string
+    label: Time Zone
+    help: IANA time zone for meal plans and scheduled tasks, for example Europe/Stockholm.
+    default: UTC
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends invitations and password reset emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v3.29.0
+    public: true
+    port: 9000
+    healthcheck: /api/app/about
+    volumes:
+      - name: mealie-data
+        mountPath: /app/data
+    env:
+      BASE_URL: ${{ services.mealie.url }}
+      ALLOW_SIGNUP: ${{ inputs.signups }}
+      TZ: ${{ inputs.timezone }}
+      DB_ENGINE: postgres
+      POSTGRES_SERVER: ${{ databases.db.host }}
+      POSTGRES_PORT: ${{ databases.db.port }}
+      POSTGRES_USER: ${{ databases.db.user }}
+      POSTGRES_PASSWORD: ${{ databases.db.password }}
+      POSTGRES_DB: ${{ databases.db.database }}
+      SMTP_HOST: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_USER: ${{ addons.email.user }}
+      SMTP_PASSWORD: ${{ addons.email.password }}
+      SMTP_FROM_EMAIL: ${{ addons.email.from }}
+      SMTP_AUTH_STRATEGY: ${{ if(addons.email.security == 'tls', 'SSL', if(addons.email.security == 'none', 'NONE', 'TLS')) }}
+
+done:
+  open: ${{ services.mealie.url }}/login
+  message: Sign in with changeme@example.com and the password MyPassword, then change the email and password right away in your profile. Check /admin/site-settings to confirm the configuration.

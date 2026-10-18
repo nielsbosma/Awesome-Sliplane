@@ -1,0 +1,107 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Dolibarr
+  description: Open-source ERP and CRM for small businesses, with third parties, proposals, orders, invoices, stock, projects, HR and accounting modules.
+  icon: https://raw.githubusercontent.com/Dolibarr/dolibarr/develop/htdocs/theme/dolibarr_256x256_color.png
+  docs: https://hub.docker.com/r/dolibarr/dolibarr
+
+server:
+  minimum: base
+
+inputs:
+  company_name:
+    type: string
+    label: Company Name
+    help: Your company's name, shown on documents. You can change it later in the setup.
+  country:
+    type: string
+    label: Country Code
+    help: Two-letter country code of your company, for example GB, FR or US.
+  timezone:
+    type: string
+    label: Time Zone
+    help: PHP time zone, for example Europe/Paris or America/New_York.
+    default: UTC
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+  db_password:
+    format: alphanumeric
+    length: 32
+  cron_key:
+    format: alphanumeric
+    length: 32
+  instance_id:
+    format: hex
+    length: 32
+
+volumes:
+  dolibarr-documents:
+    description: Uploaded and generated documents, shared by the app and cron containers
+  dolibarr-custom:
+    description: Custom and third-party modules
+
+services:
+  mariadb:
+    image: docker.io/library/mariadb:11.8.9
+    port: 3306
+    protocol: tcp
+    volumes:
+      - name: dolibarr-mariadb
+        mountPath: /var/lib/mysql
+    env:
+      MARIADB_DATABASE: dolibarr
+      MARIADB_USER: dolibarr
+      MARIADB_PASSWORD: ${{ secrets.db_password }}
+      MARIADB_RANDOM_ROOT_PASSWORD: 1
+
+  dolibarr:
+    image: docker.io/dolibarr/dolibarr:24.0.2
+    public: true
+    port: 80
+    healthcheck: /
+    dependsOn: [mariadb]
+    volumes:
+      - name: dolibarr-documents
+        mountPath: /var/www/documents
+      - name: dolibarr-custom
+        mountPath: /var/www/html/custom
+    env:
+      DOLI_DB_TYPE: mysqli
+      DOLI_DB_HOST: ${{ services.mariadb.internalHost }}
+      DOLI_DB_HOST_PORT: 3306
+      DOLI_DB_NAME: dolibarr
+      DOLI_DB_USER: dolibarr
+      DOLI_DB_PASSWORD: ${{ secrets.db_password }}
+      DOLI_URL_ROOT: ${{ services.dolibarr.url }}
+      DOLI_INSTANCE_UNIQUE_ID: ${{ secrets.instance_id }}
+      DOLI_ADMIN_LOGIN: admin
+      DOLI_ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      DOLI_COMPANY_NAME: ${{ inputs.company_name }}
+      DOLI_COMPANY_COUNTRYCODE: ${{ inputs.country }}
+      DOLI_CRON_KEY: ${{ secrets.cron_key }}
+      PHP_INI_DATE_TIMEZONE: ${{ inputs.timezone }}
+
+  # Runs scheduled jobs every five minutes once the Scheduled Jobs module is enabled.
+  cron:
+    image: docker.io/dolibarr/dolibarr:24.0.2
+    envFrom: dolibarr
+    dependsOn: [dolibarr]
+    volumes:
+      - name: dolibarr-documents
+        mountPath: /var/www/documents
+      - name: dolibarr-custom
+        mountPath: /var/www/html/custom
+    env:
+      DOLI_CRON: 1
+      DOLI_CRON_USER: admin
+
+done:
+  open: ${{ services.dolibarr.url }}
+  message: The first start creates the database, which takes a minute or two. Then sign in as admin with the password below, enable the modules you need under Home > Setup > Modules, and set up outgoing email under Setup > Emails.

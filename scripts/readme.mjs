@@ -11,15 +11,18 @@ const titles = {
   "auth-and-security": "Auth and Security",
   automation: "Automation",
   business: "Business",
+  cms: "CMS",
   commerce: "Commerce",
   communication: "Communication",
   "customer-support": "Customer Support",
   "dev-tools": "Developer Tools",
+  finance: "Finance",
   "low-code": "Low-Code",
   marketing: "Marketing",
   media: "Media",
   monitoring: "Monitoring",
   productivity: "Productivity",
+  search: "Search",
 };
 
 function appField(yaml, key) {

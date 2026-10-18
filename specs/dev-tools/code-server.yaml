@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: code-server
+  description: VS Code in the browser. Code, run a terminal and install extensions on your own server from any device.
+  icon: https://raw.githubusercontent.com/coder/code-server/v4.141.0/src/browser/media/pwa-icon-192.png
+  docs: https://coder.com/docs/code-server/install
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  password:
+    format: alphanumeric
+    length: 24
+    label: Password
+    show: true
+
+services:
+  code:
+    image: docker.io/codercom/code-server:4.141.0
+    public: true
+    port: 8080
+    healthcheck: /healthz
+    volumes:
+      - name: code-home
+        mountPath: /home/coder
+    env:
+      PASSWORD: ${{ secrets.password }}
+
+done:
+  open: ${{ services.code.url }}
+  message: Sign in with the password below. Your settings, extensions and files under /home/coder are kept on the code-home volume.

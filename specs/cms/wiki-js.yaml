@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Wiki.js
+  description: Modern open source wiki with a Markdown and visual editor, page history, search, granular permissions and many sign-in options, backed by Postgres.
+  icon: https://raw.githubusercontent.com/requarks/wiki/v2.5.314/client/static/svg/logo-wikijs.svg
+  docs: https://docs.requarks.io/install/docker
+
+server:
+  minimum: base
+  recommended: medium
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  wiki:
+    image: ghcr.io/requarks/wiki:2.5.314
+    public: true
+    port: 3000
+    healthcheck: /healthz
+    volumes:
+      - name: wiki-content
+        mountPath: /wiki/data/content
+    env:
+      DB_TYPE: postgres
+      DB_HOST: ${{ databases.db.host }}
+      DB_PORT: ${{ databases.db.port }}
+      DB_USER: ${{ databases.db.user }}
+      DB_PASS: ${{ databases.db.password }}
+      DB_NAME: ${{ databases.db.database }}
+
+done:
+  open: ${{ services.wiki.url }}
+  message: Open Wiki.js and finish the setup screen. Enter your admin email and password, and set the site URL to ${{ services.wiki.url }}. Then sign in and create your home page.

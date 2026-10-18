@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Meilisearch
+  description: Fast, typo-tolerant search engine with a RESTful API for adding instant search to apps and sites, including filters, facets and hybrid search.
+  icon: https://raw.githubusercontent.com/meilisearch/meilisearch/v1.55.0/assets/logo.svg
+  docs: https://www.meilisearch.com/docs/learn/self_hosted/install_meilisearch_locally
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  master_key:
+    format: alphanumeric
+    length: 32
+    label: Master Key
+    show: true
+
+services:
+  meilisearch:
+    image: docker.io/getmeili/meilisearch:v1.55.0
+    public: true
+    port: 7700
+    healthcheck: /health
+    volumes:
+      - name: meili-data
+        mountPath: /meili_data
+    env:
+      MEILI_ENV: production
+      MEILI_MASTER_KEY: ${{ secrets.master_key }}
+      MEILI_NO_ANALYTICS: true
+
+done:
+  open: ${{ services.meilisearch.url }}/health
+  message: Meilisearch runs in production mode, so there is no search preview UI. Use ${{ services.meilisearch.url }} with the master key below to fetch your API keys (GET /keys), then create indexes and add documents with the API or an SDK. Keep the master key out of front-end code.

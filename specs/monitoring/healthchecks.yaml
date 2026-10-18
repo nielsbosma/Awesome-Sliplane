@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Healthchecks
+  description: Cron job and background task monitoring. Your jobs ping a URL when they run, and Healthchecks alerts you by email, Slack, Telegram and more when they don't.
+  icon: https://raw.githubusercontent.com/healthchecks/healthchecks/master/static/img/favicon.svg
+  docs: https://healthchecks.io/docs/self_hosted_docker/
+
+server:
+  minimum: starter
+  recommended: base
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: You sign in with this address. The account is created as a superuser on first start.
+    required: true
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: Lets visitors create their own accounts. Sign-up works through emailed login links, so it needs email.
+    default: false
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends alert emails, monthly reports and login links. Without it, use other notification channels such as Slack or Telegram.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  healthchecks:
+    image: docker.io/healthchecks/healthchecks:v4.4
+    public: true
+    port: 8000
+    healthcheck: /api/v3/status/
+    # Runs migrations and creates the admin account; a second run fails harmlessly because the email is taken.
+    cmd: sh -c "./manage.py migrate && (./manage.py createsuperuser --email $HC_ADMIN_EMAIL --password $HC_ADMIN_PASSWORD || true) && exec uwsgi /opt/healthchecks/docker/uwsgi.ini"
+    env:
+      HC_ADMIN_EMAIL: ${{ inputs.admin_email }}
+      HC_ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      DEBUG: False
+      SECRET_KEY: ${{ secret(50) }}
+      SITE_ROOT: ${{ services.healthchecks.url }}
+      SITE_NAME: Healthchecks
+      ALLOWED_HOSTS: "*"
+      SECURE_PROXY_SSL_HEADER: HTTP_X_FORWARDED_PROTO,https
+      REGISTRATION_OPEN: ${{ if(inputs.signups, 'True', 'False') }}
+      DB: postgres
+      DB_HOST: ${{ databases.db.host }}
+      DB_PORT: ${{ databases.db.port }}
+      DB_NAME: ${{ databases.db.database }}
+      DB_USER: ${{ databases.db.user }}
+      DB_PASSWORD: ${{ databases.db.password }}
+      DEFAULT_FROM_EMAIL: ${{ addons.email.from }}
+      EMAIL_HOST: ${{ addons.email.host }}
+      EMAIL_PORT: ${{ addons.email.port }}
+      EMAIL_HOST_USER: ${{ addons.email.user }}
+      EMAIL_HOST_PASSWORD: ${{ addons.email.password }}
+      EMAIL_USE_TLS: ${{ if(addons.email.enabled, if(addons.email.security == 'starttls', 'True', 'False'), '') }}
+      EMAIL_USE_SSL: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'True', 'False'), '') }}
+
+done:
+  open: ${{ services.healthchecks.url }}/accounts/login/
+  message: Sign in with ${{ inputs.admin_email }} and the admin password below, then create your first check and point your cron job at its ping URL.

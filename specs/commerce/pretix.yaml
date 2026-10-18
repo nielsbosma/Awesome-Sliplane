@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: pretix
+  description: Open-source ticket shop for conferences, concerts, workshops and festivals, with seating plans, vouchers, payment providers, invoices and check-in apps.
+  icon: https://raw.githubusercontent.com/pretix/pretix/v2026.8.0/src/pretix/static/pretixbase/img/icons/android-chrome-512x512.png
+  docs: https://docs.pretix.eu/self-hosting/installation/docker_smallscale/
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  instance_name:
+    type: string
+    label: Instance Name
+    help: Shown in emails and page titles.
+    default: pretix
+  currency:
+    type: string
+    label: Default Currency
+    help: Three-letter currency code for new events, for example EUR, USD or GBP.
+    default: EUR
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+  django_secret:
+    format: alphanumeric
+    length: 50
+
+addons:
+  email:
+    use: smtp
+    reason: pretix emails order confirmations, tickets and payment reminders to your customers.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+volumes:
+  pretix-data:
+    description: Uploaded media, generated tickets and invoices, and logs
+
+services:
+  pretix:
+    image: docker.io/pretix/standalone:2026.8.0
+    public: true
+    port: 80
+    healthcheck: /healthcheck/
+    volumes:
+      - name: pretix-data
+        mountPath: /data
+    env:
+      PRETIX_PRETIX_INSTANCE_NAME: ${{ inputs.instance_name }}
+      PRETIX_PRETIX_URL: ${{ services.pretix.url }}
+      PRETIX_PRETIX_CURRENCY: ${{ inputs.currency }}
+      PRETIX_PRETIX_TRUST_X_FORWARDED_FOR: true
+      PRETIX_PRETIX_TRUST_X_FORWARDED_PROTO: true
+      PRETIX_DJANGO_SECRET: ${{ secrets.django_secret }}
+      PRETIX_DATABASE_BACKEND: postgresql
+      PRETIX_DATABASE_NAME: ${{ databases.db.database }}
+      PRETIX_DATABASE_USER: ${{ databases.db.user }}
+      PRETIX_DATABASE_PASSWORD: ${{ databases.db.password }}
+      PRETIX_DATABASE_HOST: ${{ databases.db.host }}
+      PRETIX_DATABASE_PORT: ${{ databases.db.port }}
+      PRETIX_REDIS_LOCATION: ${{ databases.redis.url }}/0
+      PRETIX_REDIS_SESSIONS: true
+      PRETIX_CELERY_BROKER: ${{ databases.redis.url }}/1
+      PRETIX_CELERY_BACKEND: ${{ databases.redis.url }}/2
+      PRETIX_MAIL_FROM: ${{ addons.email.from }}
+      PRETIX_MAIL_HOST: ${{ addons.email.host }}
+      PRETIX_MAIL_PORT: ${{ addons.email.port }}
+      PRETIX_MAIL_USER: ${{ addons.email.user }}
+      PRETIX_MAIL_PASSWORD: ${{ addons.email.password }}
+      PRETIX_MAIL_TLS: ${{ if(addons.email.security == 'starttls', 'true', 'false') }}
+      PRETIX_MAIL_SSL: ${{ if(addons.email.security == 'tls', 'true', 'false') }}
+
+  # Runs pretix's periodic tasks every five minutes. On its first run it replaces the
+  # default admin@localhost password "admin" with the generated admin password.
+  cron:
+    image: docker.io/pretix/standalone:2026.8.0
+    cmd: >-
+      shell -c "import os, time; from django.core.management import call_command; from pretix.base.models import User;
+      [u.set_password(os.environ['ADMIN_PASSWORD']) or u.save() for u in User.objects.filter(email='admin@localhost') if u.check_password('admin')];
+      [(call_command('runperiodic'), time.sleep(300)) for _ in iter(int, 1)]"
+    envFrom: pretix
+    dependsOn: [pretix]
+    volumes:
+      - name: pretix-data
+        mountPath: /data
+    env:
+      AUTOMIGRATE: skip
+      ADMIN_PASSWORD: ${{ secrets.admin_password }}
+
+done:
+  open: ${{ services.pretix.url }}/control/
+  message: The first start sets up the database, which takes a minute or two. Then sign in with admin@localhost and the admin password below, change the email address of this account, and create your organizer and first event.

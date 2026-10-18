@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Hasura GraphQL Engine
+  description: Instant realtime GraphQL and REST APIs on Postgres, with permissions, event triggers, actions and a web console.
+  icon: https://raw.githubusercontent.com/hasura/graphql-engine/v2.51.0/docs/static/img/favicon.png
+  docs: https://hasura.io/docs/2.0/deployment/deployment-guides/docker/
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  admin_secret:
+    format: alphanumeric
+    length: 32
+    label: Admin Secret
+    show: true
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  hasura:
+    image: docker.io/hasura/graphql-engine:v2.51.0
+    public: true
+    port: 8080
+    healthcheck: /healthz
+    env:
+      # Connects this database as the "default" source and stores Hasura's metadata in it.
+      HASURA_GRAPHQL_DATABASE_URL: ${{ databases.db.url }}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${{ secrets.admin_secret }}
+      HASURA_GRAPHQL_SERVER_PORT: 8080
+      HASURA_GRAPHQL_ENABLE_CONSOLE: true
+      HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
+      HASURA_GRAPHQL_DEV_MODE: false
+      HASURA_GRAPHQL_ENABLE_TELEMETRY: false
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log
+
+done:
+  open: ${{ services.hasura.url }}/console
+  message: Open the console and sign in with the admin secret below. Your Postgres database is already connected as the default source; create or track tables under Data. Send the secret as the x-hasura-admin-secret header for admin API calls.

@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Odoo
+  description: Odoo Community, the open-source suite of business apps for CRM, sales, invoicing, inventory, projects, website and more.
+  icon: https://raw.githubusercontent.com/odoo/odoo/20.0/addons/web/static/img/odoo-icon-192x192.png
+  docs: https://hub.docker.com/_/odoo
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: You sign in to Odoo with this address.
+    required: true
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends invitations, password resets, quotes and invoices. Odoo only supports STARTTLS or unencrypted SMTP here, so use port 587 or 25.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+    database: odoo
+
+services:
+  odoo:
+    image: docker.io/library/odoo:20.0-20261015
+    public: true
+    port: 8069
+    healthcheck: /web/health
+    # The database is created by Sliplane, so Odoo is initialized once with -i base and the
+    # admin login is then set from the shell. The database manager is disabled.
+    cmd: >-
+      sh -c "psql -c 'select 1' > /dev/null || exit 1;
+      if ! psql -c 'select 1 from ir_module_module limit 1' > /dev/null 2>&1; then odoo -i base --stop-after-init || exit 1; fi;
+      if [ ! -f /var/lib/odoo/.admin-configured ]; then printenv SETUP_SCRIPT | odoo shell --no-http && touch /var/lib/odoo/.admin-configured || exit 1; fi;
+      exec odoo"
+    volumes:
+      - name: odoo-data
+        mountPath: /var/lib/odoo
+      - name: odoo-addons
+        mountPath: /mnt/extra-addons
+    env:
+      PGHOST: ${{ databases.db.host }}
+      PGPORT: ${{ databases.db.port }}
+      PGUSER: ${{ databases.db.user }}
+      PGPASSWORD: ${{ databases.db.password }}
+      PGDATABASE: ${{ databases.db.database }}
+      ODOO_PROXY_MODE: true
+      ODOO_LIST_DB: false
+      ODOO_DBFILTER: ^odoo$
+      ADMIN_EMAIL: ${{ inputs.admin_email }}
+      ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      SETUP_SCRIPT: "import os; env.ref('base.user_admin').write({'login': os.environ['ADMIN_EMAIL'], 'email': os.environ['ADMIN_EMAIL'], 'password': os.environ['ADMIN_PASSWORD']}); env.cr.commit()"
+      ODOO_EMAIL_FROM: ${{ addons.email.from }}
+      ODOO_SMTP_SERVER: ${{ addons.email.host }}
+      ODOO_SMTP_PORT: ${{ addons.email.port }}
+      ODOO_SMTP_USER: ${{ addons.email.user }}
+      ODOO_SMTP_PASSWORD: ${{ addons.email.password }}
+      ODOO_SMTP_SSL: ${{ if(addons.email.security == 'starttls', 'true', '') }}
+
+done:
+  open: ${{ services.odoo.url }}/web/login
+  message: The first start installs the Odoo base, which takes a few minutes. Then sign in with ${{ inputs.admin_email }} and the admin password below, and install the apps you need from the Apps menu.

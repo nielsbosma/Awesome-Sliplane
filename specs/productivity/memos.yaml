@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Memos
+  description: Lightweight, privacy-first note-taking service for quick Markdown notes, tags, attachments and a timeline you can share or keep private.
+  icon: https://raw.githubusercontent.com/usememos/memos/main/web/public/logo.webp
+  docs: https://usememos.com/docs/install
+
+server:
+  minimum: starter
+  recommended: base
+
+services:
+  memos:
+    image: docker.io/neosmemo/memos:0.31.0
+    public: true
+    port: 5230
+    healthcheck: /healthz
+    volumes:
+      - name: memos-data
+        mountPath: /var/opt/memos
+    env:
+      MEMOS_PORT: 5230
+      MEMOS_INSTANCE_URL: ${{ services.memos.url }}
+
+done:
+  open: ${{ services.memos.url }}/auth/signup
+  message: Create your account. The first account becomes the admin; after that you can turn off sign-ups under Settings > Instance. Notes are stored in SQLite on the memos-data volume.
