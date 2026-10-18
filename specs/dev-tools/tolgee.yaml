@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Tolgee
+  description: Open source localization platform with in-context translation, translation memory, machine translation and SDKs for React, Angular, Vue and more.
+  icon: https://raw.githubusercontent.com/tolgee/tolgee-platform/main/webapp/public/favicon.svg
+  docs: https://docs.tolgee.io/platform/self_hosting/getting_started
+
+server:
+  minimum: medium
+  recommended: large
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Tolgee send invitations, email verification and password resets.
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 24
+    label: Admin Password
+    show: true
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  tolgee:
+    image: docker.io/tolgee/tolgee:v3.236.1
+    public: true
+    port: 8080
+    healthcheck: /actuator/health
+    volumes:
+      - name: tolgee-data
+        mountPath: /data
+    env:
+      TOLGEE_POSTGRES_AUTOSTART_ENABLED: false
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}
+      SPRING_DATASOURCE_USERNAME: ${{ databases.db.user }}
+      SPRING_DATASOURCE_PASSWORD: ${{ databases.db.password }}
+      TOLGEE_FRONT_END_URL: ${{ services.tolgee.url }}
+      TOLGEE_FILE_STORAGE_FS_DATA_PATH: /data
+      TOLGEE_AUTHENTICATION_ENABLED: true
+      TOLGEE_AUTHENTICATION_INITIAL_USERNAME: admin
+      TOLGEE_AUTHENTICATION_INITIAL_PASSWORD: ${{ secrets.admin_password }}
+      TOLGEE_AUTHENTICATION_JWT_SECRET: ${{ hex(64) }}
+      TOLGEE_SMTP_HOST: ${{ addons.email.host }}
+      TOLGEE_SMTP_PORT: ${{ addons.email.port }}
+      TOLGEE_SMTP_USERNAME: ${{ addons.email.user }}
+      TOLGEE_SMTP_PASSWORD: ${{ addons.email.password }}
+      TOLGEE_SMTP_FROM: ${{ addons.email.from }}
+      TOLGEE_SMTP_AUTH: ${{ if(addons.email.user, 'true', '') }}
+      TOLGEE_SMTP_SSL_ENABLED: ${{ if(addons.email.security == 'tls', 'true', '') }}
+      TOLGEE_SMTP_TLS_ENABLED: ${{ if(addons.email.security == 'starttls', 'true', '') }}
+
+done:
+  open: ${{ services.tolgee.url }}
+  message: Sign in with the username admin and the admin password below. Tolgee takes about a minute to start the first time.

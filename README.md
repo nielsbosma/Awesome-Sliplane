@@ -8,6 +8,7 @@ Every spec lives in [specs/](specs), grouped by category. Images are pinned to a
 
 | App | What it is | |
 | --- | --- | --- |
+| [CompreFace](specs/ai/compreface.yaml) | Self-hosted face recognition service with a web UI and REST API for face detection, verification and recognition, plus age, gender and landmark plugins. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/ai/compreface.yaml) |
 | [LibreChat](specs/ai/librechat.yaml) | Self-hosted AI chat with multiple users, agents, file uploads and conversation search, for Anthropic, OpenAI and OpenAI-compatible models. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/ai/librechat.yaml) |
 | [LiteLLM](specs/ai/litellm.yaml) | OpenAI-compatible LLM gateway for 100+ providers, with virtual keys, budgets, spend tracking and an admin UI, backed by Postgres. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/ai/litellm.yaml) |
 | [LobeHub](specs/ai/lobehub.yaml) | Modern AI chat and agent workspace (formerly LobeChat). Server edition with accounts, synced history, a knowledge base and file uploads, backed by Postgres with pgvector and S3 storage. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/ai/lobehub.yaml) |
@@ -55,6 +56,7 @@ Every spec lives in [specs/](specs), grouped by category. Images are pinned to a
 | App | What it is | |
 | --- | --- | --- |
 | [Mattermost](specs/communication/mattermost.yaml) | Open-source team chat with channels, threads, file sharing, integrations and plugins. A self-hosted alternative to Slack, backed by Postgres. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/communication/mattermost.yaml) |
+| [Rocket.Chat](specs/communication/rocketchat.yaml) | Open source team chat with channels, direct messages, threads, video calls, file sharing and integrations, hosted on your own server. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/communication/rocketchat.yaml) |
 
 ## Customer Support
 
@@ -67,7 +69,9 @@ Every spec lives in [specs/](specs), grouped by category. Images are pinned to a
 
 | App | What it is | |
 | --- | --- | --- |
+| [Hoppscotch](specs/dev-tools/hoppscotch.yaml) | Open source API development ecosystem for testing REST, GraphQL, WebSocket and other APIs, with team workspaces and an admin dashboard. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/dev-tools/hoppscotch.yaml) |
 | [Novu](specs/dev-tools/novu.yaml) | Open source notification infrastructure for email, SMS, push, chat and in-app inbox notifications, with a workflow editor and API. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/dev-tools/novu.yaml) |
+| [Tolgee](specs/dev-tools/tolgee.yaml) | Open source localization platform with in-context translation, translation memory, machine translation and SDKs for React, Angular, Vue and more. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/dev-tools/tolgee.yaml) |
 | [Unleash](specs/dev-tools/unleash.yaml) | Open source feature flag management. Roll out features gradually, run A/B tests and kill switches, with SDKs for most languages and frameworks. | [![Deploy to Sliplane](https://sliplane.opendeploy.cloud/button.svg)](https://sliplane.opendeploy.cloud/?repo=https://github.com/nielsbosma/awesome-sliplane/specs/dev-tools/unleash.yaml) |
 
 ## Low-Code

@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Hoppscotch
+  description: Open source API development ecosystem for testing REST, GraphQL, WebSocket and other APIs, with team workspaces and an admin dashboard.
+  icon: https://github.com/hoppscotch.png
+  docs: https://docs.hoppscotch.io/documentation/self-host/community-edition/install-and-build
+
+server:
+  minimum: base
+  recommended: medium
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  hoppscotch:
+    image: docker.io/hoppscotch/hoppscotch:2026.9.0
+    public: true
+    port: 8000
+    healthcheck: /backend/ping
+    # Runs database migrations, then starts the all-in-one container. The backend must listen on 8080
+    # behind the built-in Caddy, so PORT is reset for it; Caddy serves everything on 8000.
+    cmd: sh -c "pnpm exec prisma migrate deploy && PORT=8080 exec node /usr/src/app/aio_run.mjs"
+    env:
+      ENABLE_SUBPATH_BASED_ACCESS: "true"
+      HOPP_ALTERNATE_PORT: 8000
+      DATABASE_URL: ${{ databases.db.url }}
+      DATA_ENCRYPTION_KEY: ${{ secret(32) }}
+      WHITELISTED_ORIGINS: ${{ services.hoppscotch.url }},app://hoppscotch
+      TRUST_PROXY: "true"
+      VITE_BASE_URL: ${{ services.hoppscotch.url }}
+      VITE_SHORTCODE_BASE_URL: ${{ services.hoppscotch.url }}
+      VITE_ADMIN_URL: ${{ services.hoppscotch.url }}/admin
+      VITE_BACKEND_GQL_URL: ${{ services.hoppscotch.url }}/backend/graphql
+      VITE_BACKEND_WS_URL: wss://${{ services.hoppscotch.host }}/backend/graphql
+      VITE_BACKEND_API_URL: ${{ services.hoppscotch.url }}/backend/v1
+      VITE_APP_TOS_LINK: https://docs.hoppscotch.io/support/terms
+      VITE_APP_PRIVACY_POLICY_LINK: https://docs.hoppscotch.io/support/privacy
+
+done:
+  open: ${{ services.hoppscotch.url }}/admin
+  message: Open the admin dashboard and finish onboarding. Set up a sign-in method there (SMTP for email magic links, or GitHub, Google or Microsoft OAuth); the first user to sign in becomes the admin. The app itself is at the root URL.

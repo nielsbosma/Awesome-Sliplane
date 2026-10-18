@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Rocket.Chat
+  description: Open source team chat with channels, direct messages, threads, video calls, file sharing and integrations, hosted on your own server.
+  icon: https://raw.githubusercontent.com/RocketChat/Rocket.Chat.Artwork/master/Logos/2020/png/icon-red.png
+  docs: https://docs.rocket.chat/docs/deploy-with-docker-docker-compose
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    required: true
+  admin_username:
+    type: string
+    label: Admin Username
+    default: admin
+    pattern: ^[a-zA-Z0-9._-]+$
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+services:
+  rocketchat:
+    image: docker.io/rocketchat/rocket.chat:8.6.3
+    public: true
+    port: 3000
+    healthcheck: /health
+    dependsOn: [mongodb]
+    volumes:
+      - name: rocketchat-uploads
+        mountPath: /app/uploads
+    env:
+      ROOT_URL: ${{ services.rocketchat.url }}
+      DEPLOY_METHOD: docker
+      MONGO_URL: mongodb://${{ services.mongodb.internalHost }}:27017/rocketchat?directConnection=true
+      ADMIN_USERNAME: ${{ inputs.admin_username }}
+      ADMIN_PASS: ${{ secrets.admin_password }}
+      ADMIN_EMAIL: ${{ inputs.admin_email }}
+      ADMIN_EMAIL_VERIFIED: true
+      OVERWRITE_SETTING_FileUpload_Storage_Type: FileSystem
+      OVERWRITE_SETTING_FileUpload_FileSystemPath: /app/uploads
+
+  mongodb:
+    image: docker.io/library/mongo:8.0.34
+    port: 27017
+    protocol: tcp
+    cmd: >-
+      bash -c "mongod --replSet rs0 --bind_ip_all &
+      until mongosh --quiet --eval 'db.adminCommand({ping: 1})' > /dev/null 2>&1; do sleep 2; done;
+      mongosh --quiet --eval 'try { rs.status() } catch (e) { rs.initiate() }';
+      wait"
+    volumes:
+      - name: rocketchat-mongodb
+        mountPath: /data/db
+
+done:
+  open: ${{ services.rocketchat.url }}
+  message: Sign in as ${{ inputs.admin_username }} with the admin password below, then finish the setup wizard to name your workspace.
