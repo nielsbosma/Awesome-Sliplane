@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Spliit
+  description: A free, open-source alternative to Splitwise. Share expenses with friends and family in groups, see who owes whom and settle up, without accounts or ads.
+  icon: https://raw.githubusercontent.com/spliit-app/spliit/1.30.0/public/logo/512x512.png
+  docs: https://github.com/spliit-app/spliit#run-with-docker-compose
+
+server:
+  minimum: starter
+  recommended: base
+
+inputs:
+  currency:
+    type: string
+    label: Default Currency
+    help: Currency code pre-selected when creating a group, such as EUR or USD.
+    default: USD
+  documents:
+    type: boolean
+    label: Allow Attaching Images to Expenses
+    help: Creates an S3 bucket for receipts and photos attached to expenses.
+    default: false
+
+addons:
+  llm:
+    use: llm
+    label: Category Suggestions
+    optional: true
+    providers: [openai, openrouter, openai-compatible]
+    default: openai
+    reason: Suggests an expense category from its title. The model must support structured outputs (json_schema).
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+buckets:
+  docs:
+    when: ${{ inputs.documents }}
+
+services:
+  spliit:
+    image: ghcr.io/spliit-app/spliit:1.30.0
+    public: true
+    port: 3000
+    healthcheck: /api/health/readiness
+    env:
+      POSTGRES_PRISMA_URL: ${{ databases.db.url }}
+      POSTGRES_URL_NON_POOLING: ${{ databases.db.url }}
+      BASE_URL: ${{ services.spliit.url }}
+      DEFAULT_CURRENCY_CODE: ${{ inputs.currency }}
+      ENABLE_EXPENSE_DOCUMENTS: ${{ inputs.documents }}
+      S3_UPLOAD_KEY: ${{ buckets.docs.accessKeyId }}
+      S3_UPLOAD_SECRET: ${{ buckets.docs.secretAccessKey }}
+      S3_UPLOAD_BUCKET: ${{ buckets.docs.bucket }}
+      S3_UPLOAD_REGION: ${{ buckets.docs.region }}
+      S3_UPLOAD_ENDPOINT: ${{ buckets.docs.endpoint }}
+      ENABLE_CATEGORY_EXTRACT: ${{ addons.llm.enabled }}
+      OPENAI_API_KEY: ${{ addons.llm.apiKey }}
+      OPENAI_BASE_URL: ${{ addons.llm.baseUrl }}
+      OPENAI_MODEL_CATEGORY_EXTRACT: ${{ addons.llm.model }}
+
+done:
+  open: ${{ services.spliit.url }}
+  message: Open Spliit and create your first group. There are no accounts; share the group link with the people you split expenses with.

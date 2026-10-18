@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: CompreFace
+  description: Self-hosted face recognition service with a web UI and REST API for face detection, verification and recognition, plus age, gender and landmark plugins.
+  icon: https://raw.githubusercontent.com/exadel-inc/CompreFace/master/ui/src/favicon.ico
+  docs: https://github.com/exadel-inc/CompreFace/blob/master/docs/Configuration.md
+
+server:
+  # The API (Java), admin (Java) and ML core (Python) share one container.
+  minimum: medium
+  recommended: large
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Turns on email verification and password resets for CompreFace accounts. Needs an SMTP server with STARTTLS and a username.
+
+databases:
+  db:
+    engine: postgres
+    version: 15
+    database: frs
+
+services:
+  compreface:
+    # All-in-one image: the multi-container setup's nginx proxies to fixed
+    # hostnames (compreface-api:8080 and so on) that Sliplane services don't have.
+    image: docker.io/exadel/compreface:1.2.0
+    public: true
+    port: 80
+    healthcheck: /
+    env:
+      EXTERNAL_DB: "true"
+      POSTGRES_URL: jdbc:postgresql://${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}
+      POSTGRES_USER: ${{ databases.db.user }}
+      POSTGRES_PASSWORD: ${{ databases.db.password }}
+      SAVE_IMAGES_TO_DB: "true"
+      ADMIN_JAVA_OPTS: -Xmx512m
+      API_JAVA_OPTS: -Xmx1g
+      ENABLE_EMAIL_SERVER: ${{ if(addons.email.enabled, 'true', 'false') }}
+      EMAIL_HOST: ${{ addons.email.host }}
+      EMAIL_USERNAME: ${{ addons.email.user }}
+      EMAIL_PASSWORD: ${{ addons.email.password }}
+      EMAIL_FROM: ${{ addons.email.from }}
+      SPRING_MAIL_PORT: ${{ addons.email.port }}
+
+done:
+  open: ${{ services.compreface.url }}
+  message: CompreFace takes a minute or two to start all its parts. Open it and sign up; the first account becomes the owner. Then create an application and a face service to get an API key.

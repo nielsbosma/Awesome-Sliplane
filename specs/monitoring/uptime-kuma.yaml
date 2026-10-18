@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Uptime Kuma
+  description: A self-hosted monitoring tool with status pages and notifications.
+  icon: https://raw.githubusercontent.com/louislam/uptime-kuma/master/public/icon.svg
+  docs: https://github.com/louislam/uptime-kuma/wiki
+
+server:
+  minimum: starter
+  recommended: base
+
+services:
+  kuma:
+    image: docker.io/louislam/uptime-kuma:2.5.6
+    public: true
+    port: 3001
+    healthcheck: /
+    volumes:
+      - name: kuma-data
+        mountPath: /app/data
+
+done:
+  open: ${{ services.kuma.url }}
+  message: Open Uptime Kuma, pick SQLite as the database and create the admin account. Data is kept on the kuma-data volume.

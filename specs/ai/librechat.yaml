@@ -1,0 +1,115 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: LibreChat
+  description: Self-hosted AI chat with multiple users, agents, file uploads and conversation search, for Anthropic, OpenAI and OpenAI-compatible models.
+  icon: https://raw.githubusercontent.com/danny-avila/LibreChat/main/client/public/assets/logo.svg
+  docs: https://www.librechat.ai/docs/local/docker
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: Turn this off after creating your own account to keep the instance private.
+    default: true
+
+secrets:
+  mongo_password:
+    format: alphanumeric
+    length: 32
+  meili_key:
+    format: alphanumeric
+    length: 32
+
+addons:
+  llm:
+    use: llm
+    providers: [anthropic, openai, openrouter, opper, berget, openai-compatible]
+    default: anthropic
+  email:
+    use: smtp
+    optional: true
+    reason: Lets LibreChat send password reset and verification emails.
+
+volumes:
+  librechat-uploads:
+    description: Files and images people upload in chats
+
+services:
+  librechat:
+    image: ghcr.io/danny-avila/librechat:v0.8.7
+    public: true
+    port: 3080
+    healthcheck: /health
+    dependsOn: [mongodb, meilisearch]
+    volumes:
+      - name: librechat-uploads
+        mountPath: /app/uploads
+      - name: librechat-images
+        mountPath: /app/client/public/images
+      - name: librechat-data
+        mountPath: /app/data
+    env:
+      HOST: 0.0.0.0
+      DOMAIN_CLIENT: ${{ services.librechat.url }}
+      DOMAIN_SERVER: ${{ services.librechat.url }}
+      TRUST_PROXY: 1
+      NO_INDEX: true
+      MONGO_URI: mongodb://librechat:${{ secrets.mongo_password }}@${{ services.mongodb.internalHost }}:27017/LibreChat?authSource=admin
+      SEARCH: true
+      MEILI_HOST: http://${{ services.meilisearch.internalHost }}:7700
+      MEILI_MASTER_KEY: ${{ secrets.meili_key }}
+      MEILI_NO_ANALYTICS: true
+      CREDS_KEY: ${{ hex(64) }}
+      CREDS_IV: ${{ hex(32) }}
+      JWT_SECRET: ${{ hex(64) }}
+      JWT_REFRESH_SECRET: ${{ hex(64) }}
+      ALLOW_EMAIL_LOGIN: true
+      ALLOW_REGISTRATION: ${{ inputs.signups }}
+      ALLOW_SOCIAL_LOGIN: false
+      ALLOW_UNVERIFIED_EMAIL_LOGIN: true
+      ALLOW_PASSWORD_RESET: ${{ addons.email.enabled }}
+      ANTHROPIC_API_KEY: ${{ if(addons.llm.provider == 'anthropic', addons.llm.apiKey, '') }}
+      OPENAI_API_KEY: ${{ if(addons.llm.provider == 'anthropic', '', addons.llm.apiKey ?? 'none') }}
+      OPENAI_REVERSE_PROXY: ${{ if(addons.llm.provider == 'anthropic', '', if(addons.llm.provider == 'openai', '', addons.llm.baseUrl)) }}
+      OPENAI_MODELS: ${{ if(addons.llm.provider == 'anthropic', '', if(addons.llm.provider == 'openai', '', addons.llm.model)) }}
+      OPENAI_TITLE_MODEL: ${{ if(addons.llm.provider == 'anthropic', '', if(addons.llm.provider == 'openai', '', addons.llm.model)) }}
+      EMAIL_HOST: ${{ addons.email.host }}
+      EMAIL_PORT: ${{ addons.email.port }}
+      EMAIL_ENCRYPTION: ${{ addons.email.security }}
+      EMAIL_USERNAME: ${{ addons.email.user }}
+      EMAIL_PASSWORD: ${{ addons.email.password }}
+      EMAIL_FROM: ${{ addons.email.from }}
+      EMAIL_FROM_NAME: ${{ if(addons.email.enabled, 'LibreChat', '') }}
+
+  mongodb:
+    image: docker.io/library/mongo:8.0.20
+    port: 27017
+    protocol: tcp
+    volumes:
+      - name: librechat-mongo
+        mountPath: /data/db
+    env:
+      MONGO_INITDB_ROOT_USERNAME: librechat
+      MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.mongo_password }}
+
+  meilisearch:
+    image: docker.io/getmeili/meilisearch:v1.35.1
+    port: 7700
+    healthcheck: /health
+    volumes:
+      - name: librechat-meili
+        mountPath: /meili_data
+    env:
+      MEILI_ENV: production
+      MEILI_MASTER_KEY: ${{ secrets.meili_key }}
+      MEILI_NO_ANALYTICS: true
+
+done:
+  open: ${{ services.librechat.url }}/register
+  message: Create your account. The first account to sign up becomes the admin.

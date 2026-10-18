@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Excalidraw
+  description: Virtual whiteboard for sketching hand-drawn style diagrams. Drawings are saved in the browser and can be exported as PNG, SVG or .excalidraw files.
+  icon: https://raw.githubusercontent.com/excalidraw/excalidraw/master/public/favicon.svg
+  docs: https://github.com/excalidraw/excalidraw
+
+server:
+  minimum: starter
+  recommended: starter
+
+services:
+  excalidraw:
+    # The project only publishes a moving "latest" tag, so this pins the
+    # build of 2026-05-06 by digest.
+    image: docker.io/excalidraw/excalidraw@sha256:f7ee194addd607bf831d2af0f0a34463dd4225e426cf35199ef0b12a803398e9
+    public: true
+    port: 80
+    healthcheck: /
+
+done:
+  open: ${{ services.excalidraw.url }}
+  message: Open Excalidraw and start drawing. Drawings stay in your browser; live collaboration and share links use excalidraw.com's servers, which are built into the image.

@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Baserow
+  description: Open-source no-code database and Airtable alternative, with an application builder, automations and a REST API.
+  icon: https://raw.githubusercontent.com/baserow/baserow/develop/web-frontend/modules/core/static/img/favicon_192.png
+  docs: https://baserow.io/docs/installation/install-with-docker
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Baserow send invites, password resets and notification emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+  cache:
+    engine: redis
+
+services:
+  baserow:
+    image: docker.io/baserow/baserow:2.4.1
+    public: true
+    port: 80
+    healthcheck: /api/_health/
+    volumes:
+      - name: baserow-data
+        mountPath: /baserow/data
+    env:
+      BASEROW_PUBLIC_URL: ${{ services.baserow.url }}
+      SECRET_KEY: ${{ secret(50) }}
+      BASEROW_JWT_SIGNING_KEY: ${{ secret(50) }}
+      DATABASE_HOST: ${{ databases.db.host }}
+      DATABASE_PORT: ${{ databases.db.port }}
+      DATABASE_NAME: ${{ databases.db.database }}
+      DATABASE_USER: ${{ databases.db.user }}
+      DATABASE_PASSWORD: ${{ databases.db.password }}
+      REDIS_URL: ${{ databases.cache.url }}
+      EMAIL_SMTP: ${{ if(addons.email.enabled, 'true', '') }}
+      EMAIL_SMTP_HOST: ${{ addons.email.host }}
+      EMAIL_SMTP_PORT: ${{ addons.email.port }}
+      EMAIL_SMTP_USER: ${{ addons.email.user }}
+      EMAIL_SMTP_PASSWORD: ${{ addons.email.password }}
+      EMAIL_SMTP_USE_TLS: ${{ if(addons.email.security == 'starttls', 'true', '') }}
+      EMAIL_SMTP_USE_SSL: ${{ if(addons.email.security == 'tls', 'true', '') }}
+      FROM_EMAIL: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.baserow.url }}
+  message: Baserow takes a few minutes to run its migrations the first time. Open it and sign up; the first account becomes the instance admin.

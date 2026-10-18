@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# Without a signing certificate the official image still starts (docker/start.sh only warns) and
+# /api/health reports "warning" with HTTP 200, but documents cannot be sealed when completed.
+# The certificate is passed as base64 contents because Sliplane has no file mounts for secrets.
+
+app:
+  name: Documenso
+  description: Open-source document signing, an alternative to DocuSign. Upload PDFs, place fields, send them for signature and keep signed documents in your own Postgres.
+  icon: https://raw.githubusercontent.com/documenso/documenso/v2.20.0/apps/remix/public/apple-touch-icon.png
+  docs: https://docs.documenso.com/docs/self-hosting/deployment/docker
+
+server:
+  minimum: base
+
+inputs:
+  cert_contents:
+    type: secret
+    label: Signing Certificate (Base64)
+    help: "A password-protected .p12 file encoded as base64, used to seal completed documents. Create one with openssl (see the docs) and run base64 -i certificate.p12. Without it, signing is unavailable."
+  cert_passphrase:
+    type: secret
+    label: Certificate Password
+    help: The password you set when exporting the .p12 file.
+
+addons:
+  email:
+    use: smtp
+    reason: Documenso emails signing requests and account verification links. New accounts must verify their email before signing in.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  documenso:
+    image: docker.io/documenso/documenso:v2.20.0
+    public: true
+    port: 3000
+    healthcheck: /api/health
+    env:
+      NEXT_PUBLIC_WEBAPP_URL: ${{ services.documenso.url }}
+      NEXT_PRIVATE_INTERNAL_WEBAPP_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${{ secret(32) }}
+      NEXT_PRIVATE_ENCRYPTION_KEY: ${{ secret(32) }}
+      NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY: ${{ secret(32) }}
+      NEXT_PRIVATE_DATABASE_URL: ${{ databases.db.url }}
+      NEXT_PRIVATE_DIRECT_DATABASE_URL: ${{ databases.db.url }}
+      NEXT_PRIVATE_SIGNING_TRANSPORT: local
+      NEXT_PRIVATE_SIGNING_LOCAL_FILE_CONTENTS: ${{ inputs.cert_contents }}
+      NEXT_PRIVATE_SIGNING_PASSPHRASE: ${{ inputs.cert_passphrase }}
+      NEXT_PRIVATE_SMTP_TRANSPORT: smtp-auth
+      NEXT_PRIVATE_SMTP_HOST: ${{ addons.email.host }}
+      NEXT_PRIVATE_SMTP_PORT: ${{ addons.email.port }}
+      NEXT_PRIVATE_SMTP_USERNAME: ${{ addons.email.user }}
+      NEXT_PRIVATE_SMTP_PASSWORD: ${{ addons.email.password }}
+      NEXT_PRIVATE_SMTP_SECURE: ${{ if(addons.email.security == 'tls', 'true', 'false') }}
+      NEXT_PRIVATE_SMTP_FROM_ADDRESS: ${{ addons.email.from }}
+      NEXT_PRIVATE_SMTP_FROM_NAME: Documenso
+
+done:
+  open: ${{ services.documenso.url }}/signup
+  message: Create your account and confirm it from the verification email. Check ${{ services.documenso.url }}/api/certificate-status to confirm that signing is ready.

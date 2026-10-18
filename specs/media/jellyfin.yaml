@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Jellyfin
+  description: Free software media server that streams your movies, shows, music and photos to web, mobile and TV apps, with no accounts or tracking.
+  icon: https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/icon-transparent.svg
+  docs: https://jellyfin.org/docs/general/installation/container
+
+server:
+  minimum: base
+  recommended: large
+  diskGb: 250
+
+volumes:
+  jellyfin-config:
+    description: Server settings, users and the library database
+  jellyfin-cache:
+    description: Transcoding and image cache
+  jellyfin-media:
+    description: Your media library, mounted at /media
+
+services:
+  jellyfin:
+    image: docker.io/jellyfin/jellyfin:12.2.20261005-225228
+    public: true
+    port: 8096
+    healthcheck: /health
+    volumes:
+      - name: jellyfin-config
+        mountPath: /config
+      - name: jellyfin-cache
+        mountPath: /cache
+      - name: jellyfin-media
+        mountPath: /media
+    env:
+      JELLYFIN_PublishedServerUrl: ${{ services.jellyfin.url }}
+
+done:
+  open: ${{ services.jellyfin.url }}
+  message: Open Jellyfin and follow the setup wizard to create the admin account. Add a library pointing at /media, then copy your files into that volume.

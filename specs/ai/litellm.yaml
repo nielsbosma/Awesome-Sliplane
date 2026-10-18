@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: LiteLLM
+  description: OpenAI-compatible LLM gateway for 100+ providers, with virtual keys, budgets, spend tracking and an admin UI, backed by Postgres.
+  docs: https://docs.litellm.ai/docs/proxy/deploy
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+  master_key:
+    format: alphanumeric
+    length: 48
+    label: Master Key
+    show: true
+
+addons:
+  llm:
+    use: llm
+    label: Provider API Key
+    optional: true
+    reason: Stores a provider key in the environment so models you add in the admin UI can use it without pasting the key again.
+    providers: [anthropic, openai, openrouter]
+    default: anthropic
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.106.0
+    public: true
+    port: 4000
+    healthcheck: /health/liveliness
+    env:
+      DATABASE_URL: ${{ databases.db.url }}
+      STORE_MODEL_IN_DB: "True"
+      LITELLM_MASTER_KEY: sk-${{ secrets.master_key }}
+      LITELLM_SALT_KEY: sk-${{ secret(48) }}
+      UI_USERNAME: admin
+      UI_PASSWORD: ${{ secrets.admin_password }}
+      PROXY_BASE_URL: ${{ services.litellm.url }}
+      ANTHROPIC_API_KEY: ${{ if(addons.llm.provider == 'anthropic', addons.llm.apiKey, '') }}
+      OPENAI_API_KEY: ${{ if(addons.llm.provider == 'openai', addons.llm.apiKey, '') }}
+      OPENROUTER_API_KEY: ${{ if(addons.llm.provider == 'openrouter', addons.llm.apiKey, '') }}
+
+done:
+  open: ${{ services.litellm.url }}/ui
+  message: |
+    Sign in to the admin UI as admin with the Admin Password below. The proxy's master API key is sk- followed by the Master Key below. Add models under Models, then create virtual keys for your apps.

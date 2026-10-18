@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Mattermost
+  description: Open-source team chat with channels, threads, file sharing, integrations and plugins. A self-hosted alternative to Slack, backed by Postgres.
+  icon: https://raw.githubusercontent.com/mattermost/mattermost/master/webapp/channels/src/images/favicon/android-chrome-192x192.png
+  docs: https://docs.mattermost.com/deployment-guide/server/deploy-containers.html
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Mattermost send invites, password resets, email verification and notification emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+    database: mattermost
+
+services:
+  mattermost:
+    # v11.7 is the current Extended Support Release (supported until May 2027).
+    image: docker.io/mattermost/mattermost-team-edition:11.7.12
+    public: true
+    port: 8065
+    healthcheck: /api/v4/system/ping
+    volumes:
+      - name: mattermost-config
+        mountPath: /mattermost/config
+      - name: mattermost-data
+        mountPath: /mattermost/data
+      - name: mattermost-plugins
+        mountPath: /mattermost/plugins
+      - name: mattermost-client-plugins
+        mountPath: /mattermost/client/plugins
+    env:
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: ${{ databases.db.url }}
+      MM_SERVICESETTINGS_SITEURL: ${{ services.mattermost.url }}
+      MM_SERVICESETTINGS_LISTENADDRESS: ":8065"
+      MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS: ${{ if(addons.email.enabled, 'true', '') }}
+      MM_EMAILSETTINGS_SMTPSERVER: ${{ addons.email.host }}
+      MM_EMAILSETTINGS_SMTPPORT: ${{ addons.email.port }}
+      MM_EMAILSETTINGS_ENABLESMTPAUTH: ${{ if(addons.email.user, 'true', '') }}
+      MM_EMAILSETTINGS_SMTPUSERNAME: ${{ addons.email.user }}
+      MM_EMAILSETTINGS_SMTPPASSWORD: ${{ addons.email.password }}
+      MM_EMAILSETTINGS_CONNECTIONSECURITY: ${{ if(addons.email.security == 'tls', 'TLS', if(addons.email.security == 'starttls', 'STARTTLS', '')) }}
+      MM_EMAILSETTINGS_FEEDBACKEMAIL: ${{ addons.email.from }}
+      MM_EMAILSETTINGS_REPLYTOADDRESS: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.mattermost.url }}
+  message: Open Mattermost and create the first account; it becomes the system admin. Then create your first team.

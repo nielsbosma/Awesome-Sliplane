@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# Plane's split-container compose fronts web, space, admin, live and api with
+# makeplane/plane-proxy, whose baked-in Caddyfile routes to the fixed hostnames
+# web:3000, api:8000 and so on. Sliplane names services <prefix>-<name>.internal,
+# and the prebuilt frontends expect the API on the same origin, so this spec uses
+# Plane's official all-in-one community image (same services under supervisord,
+# Caddy routing on localhost) with external Postgres, Redis, RabbitMQ and S3.
+x-upstream: https://github.com/makeplane/plane/tree/preview/deployments/aio/community
+
+app:
+  name: Plane
+  description: Open source project management for tracking issues, sprints (cycles), modules, pages and roadmaps. An alternative to Jira, Linear and Asana.
+  icon: https://raw.githubusercontent.com/makeplane/plane/preview/apps/web/app/assets/favicon/apple-touch-icon.png
+  docs: https://developers.plane.so/self-hosting/methods/docker-aio
+
+server:
+  minimum: medium
+  recommended: large
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Plane send magic sign-in codes, workspace invites and notifications.
+
+secrets:
+  rabbitmq_password:
+    format: alphanumeric
+    length: 32
+
+databases:
+  db:
+    engine: postgres
+    version: 15
+  cache:
+    engine: redis
+
+buckets:
+  uploads: {}
+
+services:
+  plane:
+    image: docker.io/makeplane/plane-aio-community:v1.4.2
+    public: true
+    port: 80
+    healthcheck: /api/instances/
+    dependsOn: [mq]
+    volumes:
+      - name: plane-data
+        mountPath: /app/data
+      - name: plane-logs
+        mountPath: /app/logs
+    env:
+      DOMAIN_NAME: ${{ services.plane.host }}
+      APP_PROTOCOL: https
+      SITE_ADDRESS: ":80"
+      SECRET_KEY: ${{ secret(50) }}
+      LIVE_SERVER_SECRET_KEY: ${{ hex(32) }}
+      DATABASE_URL: ${{ databases.db.url }}
+      REDIS_URL: ${{ databases.cache.url }}
+      AMQP_URL: amqp://plane:${{ secrets.rabbitmq_password }}@${{ services.mq.internalHost }}:5672/plane
+      AWS_REGION: ${{ buckets.uploads.region }}
+      AWS_ACCESS_KEY_ID: ${{ buckets.uploads.accessKeyId }}
+      AWS_SECRET_ACCESS_KEY: ${{ buckets.uploads.secretAccessKey }}
+      AWS_S3_BUCKET_NAME: ${{ buckets.uploads.bucket }}
+      AWS_S3_ENDPOINT_URL: ${{ buckets.uploads.endpoint }}
+      FILE_SIZE_LIMIT: 5242880
+      EMAIL_HOST: ${{ addons.email.host }}
+      EMAIL_PORT: ${{ addons.email.port }}
+      EMAIL_HOST_USER: ${{ addons.email.user }}
+      EMAIL_HOST_PASSWORD: ${{ addons.email.password }}
+      EMAIL_FROM: ${{ addons.email.from }}
+      EMAIL_USE_TLS: ${{ if(addons.email.enabled, if(addons.email.security == 'starttls', '1', '0'), '') }}
+      EMAIL_USE_SSL: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', '1', '0'), '') }}
+
+  mq:
+    image: docker.io/library/rabbitmq:3.13.6-management-alpine
+    volumes:
+      - name: plane-rabbitmq
+        mountPath: /var/lib/rabbitmq
+    env:
+      RABBITMQ_DEFAULT_USER: plane
+      RABBITMQ_DEFAULT_PASS: ${{ secrets.rabbitmq_password }}
+      RABBITMQ_DEFAULT_VHOST: plane
+
+done:
+  open: ${{ services.plane.url }}/god-mode/
+  message: Plane takes a few minutes to run its migrations on first start. Open God Mode to create the instance admin, then go to the main URL to create your workspace.

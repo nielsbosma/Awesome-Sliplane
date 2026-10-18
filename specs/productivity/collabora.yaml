@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Collabora Online
+  description: LibreOffice-based online editors for documents, spreadsheets and presentations with real-time co-editing. Connect it to Nextcloud, ownCloud, Seafile and other WOPI hosts, which open files in it.
+  docs: https://sdk.collaboraonline.com/docs/installation/CODE_Docker_image.html
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  wopi_host:
+    type: url
+    label: Nextcloud URL
+    help: The address of the Nextcloud or other WOPI host allowed to use this server, such as https://cloud.example.com.
+    placeholder: https://cloud.example.com
+    required: true
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Console Password
+    show: true
+
+services:
+  collabora:
+    image: docker.io/collabora/code:26.04.5.1.1
+    public: true
+    port: 9980
+    healthcheck: /
+    env:
+      aliasgroup1: ${{ inputs.wopi_host }}
+      server_name: ${{ services.collabora.host }}
+      DONT_GEN_SSL_CERT: true
+      extra_params: --o:ssl.enable=false --o:ssl.termination=true
+      username: admin
+      password: ${{ secrets.admin_password }}
+
+done:
+  open: ${{ services.collabora.url }}/browser/dist/admin/admin.html
+  message: In Nextcloud, install the Nextcloud Office app and set ${{ services.collabora.url }} as your own Collabora Online server. The admin console signs in as admin with the password below.

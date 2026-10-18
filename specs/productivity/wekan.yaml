@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: WeKan
+  description: Open-source kanban boards with swimlanes, checklists, labels, due dates and a REST API. A self-hosted alternative to Trello, backed by MongoDB.
+  icon: https://raw.githubusercontent.com/wekan/wekan/main/public/android-chrome-192x192.png
+  docs: https://github.com/wekan/wekan/tree/main/docs
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets WeKan send invites, password resets and card notifications.
+
+services:
+  mongodb:
+    image: docker.io/library/mongo:7.0.45
+    port: 27017
+    protocol: tcp
+    # Standalone mongod with a small cache so it shares the server with WeKan.
+    cmd: --bind_ip_all --wiredTigerCacheSizeGB 0.5
+    volumes:
+      - name: wekan-db
+        mountPath: /data/db
+
+  wekan:
+    image: ghcr.io/wekan/wekan:v12.54
+    public: true
+    port: 8080
+    healthcheck: /
+    dependsOn:
+      - mongodb
+    volumes:
+      - name: wekan-files
+        mountPath: /data
+    env:
+      ROOT_URL: ${{ services.wekan.url }}
+      WEKAN_DB: mongodb
+      MONGO_URL: mongodb://${{ services.mongodb.internalHost }}:27017/wekan
+      # Standalone MongoDB (no replica set), so WeKan polls for changes.
+      METEOR_REACTIVITY_ORDER: polling
+      DEFAULT_METEOR_REACTIVITY_ORDER: polling
+      DDP_TRANSPORT: sockjs
+      WRITABLE_PATH: /data
+      WITH_API: "true"
+      BROWSER_POLICY_ENABLED: "true"
+      MAIL_URL: ${{ addons.email.url }}
+      MAIL_FROM: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.wekan.url }}
+  message: Open WeKan and register; the first account becomes the admin. Turn off open registration under Admin Panel > Settings if you don't want others to sign up.

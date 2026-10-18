@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# The image bundles Postgres, Redis and RabbitMQ. Postgres and Redis are moved to
+# Sliplane via the documented DB_* and REDIS_SERVER_* variables; RabbitMQ stays
+# inside the container (no AMQP_URI).
+x-upstream: https://github.com/ONLYOFFICE/Docker-DocumentServer
+
+app:
+  name: ONLYOFFICE Docs
+  description: Online editors for documents, spreadsheets and presentations with real-time co-editing. Connect it to Nextcloud, Seafile, Moodle and similar apps, which open files in it.
+  icon: https://raw.githubusercontent.com/ONLYOFFICE/onlyoffice-nextcloud/master/img/app.svg
+  docs: https://helpcenter.onlyoffice.com/docs/installation/docs-community-install-docker.aspx
+
+server:
+  minimum: medium
+  recommended: large
+
+secrets:
+  jwt_secret:
+    format: alphanumeric
+    length: 32
+    label: JWT Secret
+    show: true
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+  cache:
+    engine: redis
+
+services:
+  onlyoffice:
+    image: docker.io/onlyoffice/documentserver:10.0.0.1
+    public: true
+    port: 80
+    healthcheck: /healthcheck
+    volumes:
+      - name: onlyoffice-data
+        mountPath: /var/www/onlyoffice/Data
+      - name: onlyoffice-cache
+        mountPath: /var/lib/onlyoffice
+    env:
+      JWT_ENABLED: true
+      JWT_SECRET: ${{ secrets.jwt_secret }}
+      JWT_HEADER: Authorization
+      DB_TYPE: postgres
+      DB_HOST: ${{ databases.db.host }}
+      DB_PORT: ${{ databases.db.port }}
+      DB_NAME: ${{ databases.db.database }}
+      DB_USER: ${{ databases.db.user }}
+      DB_PWD: ${{ databases.db.password }}
+      REDIS_SERVER_HOST: ${{ databases.cache.host }}
+      REDIS_SERVER_PORT: ${{ databases.cache.port }}
+
+done:
+  open: ${{ services.onlyoffice.url }}/healthcheck
+  message: ONLYOFFICE Docs has no UI of its own. In Nextcloud (or another connected app), install the ONLYOFFICE connector and enter ${{ services.onlyoffice.url }} as the Document Server address with the JWT secret below. The first start takes a few minutes.

@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: LobeHub
+  description: Modern AI chat and agent workspace (formerly LobeChat). Server edition with accounts, synced history, a knowledge base and file uploads, backed by Postgres with pgvector and S3 storage.
+  icon: https://raw.githubusercontent.com/lobehub/lobehub/main/public/apple-touch-icon.png
+  docs: https://lobehub.com/docs/self-hosting/server-database
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  allowed_emails:
+    type: string
+    label: Allowed Emails
+    help: Comma-separated emails or domains that may sign up. Leave empty to let anyone register.
+  jwks_key:
+    type: secret
+    label: JWKS Key
+    help: Optional RS256 JWKS JSON from the generator in LobeHub's auth docs. Needed for image generation and other background tasks; plain chat works without it.
+
+addons:
+  llm:
+    use: llm
+    providers: [anthropic, openai, openrouter, opper, berget, openai-compatible]
+    default: anthropic
+  email:
+    use: smtp
+    optional: true
+    reason: Lets LobeHub send verification and password reset emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+    extensions: [vector]
+  cache:
+    engine: redis
+
+buckets:
+  files: {}
+
+services:
+  lobehub:
+    image: docker.io/lobehub/lobehub:2.2.20
+    public: true
+    port: 3210
+    env:
+      APP_URL: ${{ services.lobehub.url }}
+      DATABASE_DRIVER: node
+      DATABASE_URL: ${{ databases.db.url }}
+      FTS_SEARCH_PROVIDER: pg_like
+      KEY_VAULTS_SECRET: ${{ secret(43) }}=
+      AUTH_SECRET: ${{ secret(44) }}
+      JWKS_KEY: ${{ inputs.jwks_key }}
+      AUTH_ALLOWED_EMAILS: ${{ inputs.allowed_emails }}
+      REDIS_URL: ${{ databases.cache.url }}
+      REDIS_PREFIX: lobechat
+      REDIS_TLS: 0
+      S3_ENDPOINT: ${{ buckets.files.endpoint }}
+      S3_BUCKET: ${{ buckets.files.bucket }}
+      S3_REGION: ${{ buckets.files.region }}
+      S3_ACCESS_KEY_ID: ${{ buckets.files.accessKeyId }}
+      S3_SECRET_ACCESS_KEY: ${{ buckets.files.secretAccessKey }}
+      S3_ENABLE_PATH_STYLE: 1
+      S3_SET_ACL: 0
+      LLM_VISION_IMAGE_USE_BASE64: 1
+      ANTHROPIC_API_KEY: ${{ if(addons.llm.provider == 'anthropic', addons.llm.apiKey, '') }}
+      OPENROUTER_API_KEY: ${{ if(addons.llm.provider == 'openrouter', addons.llm.apiKey, '') }}
+      OPENAI_API_KEY: ${{ if(addons.llm.provider == 'anthropic', '', if(addons.llm.provider == 'openrouter', '', addons.llm.apiKey ?? 'none')) }}
+      OPENAI_PROXY_URL: ${{ if(addons.llm.provider == 'anthropic', '', if(addons.llm.provider == 'openrouter', '', if(addons.llm.provider == 'openai', '', addons.llm.baseUrl))) }}
+      OPENAI_MODEL_LIST: ${{ if(addons.llm.provider == 'anthropic', '', if(addons.llm.provider == 'openrouter', '', if(addons.llm.provider == 'openai', '', addons.llm.model))) }}
+      DEFAULT_AGENT_CONFIG: provider=${{ if(addons.llm.provider == 'anthropic', 'anthropic', if(addons.llm.provider == 'openrouter', 'openrouter', 'openai')) }};model=${{ addons.llm.model }}
+      EMAIL_SERVICE_PROVIDER: ${{ if(addons.email.enabled, 'nodemailer', '') }}
+      SMTP_HOST: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_SECURE: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      SMTP_USER: ${{ addons.email.user }}
+      SMTP_PASS: ${{ addons.email.password }}
+      SMTP_FROM: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.lobehub.url }}
+  message: LobeHub runs its database migrations on first start, which can take a minute. Then sign up with email and password to create your account.

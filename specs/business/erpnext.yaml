@@ -1,0 +1,151 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: ERPNext
+  description: Open source ERP built on the Frappe framework, with accounting, inventory, sales, purchasing, manufacturing, projects and HR in one app.
+  icon: https://raw.githubusercontent.com/frappe/erpnext/develop/erpnext/public/images/erpnext-logo.png
+  docs: https://github.com/frappe/frappe_docker
+
+server:
+  minimum: medium
+  recommended: large
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Administrator Password
+    show: true
+  db_root_password:
+    format: alphanumeric
+    length: 32
+
+databases:
+  redis-cache:
+    engine: redis
+    persist: false
+  redis-queue:
+    engine: redis
+
+volumes:
+  sites:
+    description: Frappe sites folder with site config and uploaded files, shared by all ERPNext services
+  logs:
+    description: Frappe bench logs
+
+services:
+  backend:
+    image: docker.io/frappe/erpnext:v16.51.1
+    port: 8000
+    dependsOn: [mariadb]
+    volumes:
+      - name: sites
+        mountPath: /home/frappe/frappe-bench/sites
+      - name: logs
+        mountPath: /home/frappe/frappe-bench/logs
+    cmd: >-
+      bash -c "ls -1 apps > sites/apps.txt;
+      bench set-config -g db_host $DB_HOST;
+      bench set-config -gp db_port 3306;
+      bench set-config -g redis_cache $FRAPPE_REDIS_CACHE;
+      bench set-config -g redis_queue $FRAPPE_REDIS_QUEUE;
+      bench set-config -g redis_socketio $FRAPPE_REDIS_QUEUE;
+      bench set-config -gp socketio_port 9000;
+      wait-for-it -t 300 $DB_HOST:3306;
+      if [ ! -d sites/frontend ]; then bench new-site --mariadb-user-host-login-scope=% --admin-password=$ADMIN_PASSWORD --db-root-username=root --db-root-password=$DB_ROOT_PASSWORD --install-app erpnext --set-default frontend; fi;
+      exec start.sh"
+    env:
+      DB_HOST: ${{ services.mariadb.internalHost }}
+      DB_ROOT_PASSWORD: ${{ secrets.db_root_password }}
+      ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      FRAPPE_REDIS_CACHE: ${{ databases.redis-cache.url }}
+      FRAPPE_REDIS_QUEUE: ${{ databases.redis-queue.url }}
+
+  frontend:
+    image: docker.io/frappe/erpnext:v16.51.1
+    public: true
+    port: 8080
+    healthcheck: /api/method/ping
+    cmd: nginx-entrypoint.sh
+    dependsOn: [backend, websocket]
+    volumes:
+      - name: sites
+        mountPath: /home/frappe/frappe-bench/sites
+      - name: logs
+        mountPath: /home/frappe/frappe-bench/logs
+    env:
+      BACKEND: ${{ services.backend.internalHost }}:8000
+      SOCKETIO: ${{ services.websocket.internalHost }}:9000
+      NGINX_LISTEN_PORT: 8080
+      FRAPPE_SITE_NAME_HEADER: frontend
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: 120
+      CLIENT_MAX_BODY_SIZE: 50m
+
+  websocket:
+    image: docker.io/frappe/erpnext:v16.51.1
+    port: 9000
+    cmd: node /home/frappe/frappe-bench/apps/frappe/socketio.js
+    dependsOn: [backend]
+    volumes:
+      - name: sites
+        mountPath: /home/frappe/frappe-bench/sites
+      - name: logs
+        mountPath: /home/frappe/frappe-bench/logs
+    env:
+      FRAPPE_REDIS_CACHE: ${{ databases.redis-cache.url }}
+      FRAPPE_REDIS_QUEUE: ${{ databases.redis-queue.url }}
+
+  queue-short:
+    image: docker.io/frappe/erpnext:v16.51.1
+    cmd: bench worker --queue short,default
+    dependsOn: [backend]
+    volumes:
+      - name: sites
+        mountPath: /home/frappe/frappe-bench/sites
+      - name: logs
+        mountPath: /home/frappe/frappe-bench/logs
+    env:
+      FRAPPE_REDIS_CACHE: ${{ databases.redis-cache.url }}
+      FRAPPE_REDIS_QUEUE: ${{ databases.redis-queue.url }}
+
+  queue-long:
+    image: docker.io/frappe/erpnext:v16.51.1
+    cmd: bench worker --queue long,default,short
+    dependsOn: [backend]
+    volumes:
+      - name: sites
+        mountPath: /home/frappe/frappe-bench/sites
+      - name: logs
+        mountPath: /home/frappe/frappe-bench/logs
+    env:
+      FRAPPE_REDIS_CACHE: ${{ databases.redis-cache.url }}
+      FRAPPE_REDIS_QUEUE: ${{ databases.redis-queue.url }}
+
+  scheduler:
+    image: docker.io/frappe/erpnext:v16.51.1
+    cmd: bench schedule
+    dependsOn: [backend]
+    volumes:
+      - name: sites
+        mountPath: /home/frappe/frappe-bench/sites
+      - name: logs
+        mountPath: /home/frappe/frappe-bench/logs
+
+  mariadb:
+    image: docker.io/library/mariadb:11.8.9
+    port: 3306
+    protocol: tcp
+    cmd: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --skip-character-set-client-handshake
+    volumes:
+      - name: erpnext-mariadb
+        mountPath: /var/lib/mysql
+    env:
+      MARIADB_ROOT_PASSWORD: ${{ secrets.db_root_password }}
+
+done:
+  open: ${{ services.frontend.url }}
+  message: The first start creates the site and installs ERPNext, which takes several minutes. Then sign in as Administrator with the password below and follow the setup wizard.

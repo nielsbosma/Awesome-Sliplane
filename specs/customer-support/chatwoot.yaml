@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Chatwoot
+  description: Open-source customer support platform. Answer live chat, email, WhatsApp and social messages from one shared inbox, with a help center, automations and reports.
+  icon: https://raw.githubusercontent.com/chatwoot/chatwoot/v4.18.0/public/brand-assets/logo_thumbnail.svg
+  docs: https://developers.chatwoot.com/self-hosted/deployment/docker
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: Lets visitors create their own accounts. Leave off to invite agents yourself.
+    default: false
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends agent invites, password resets, conversation notifications and email channel replies.
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+    extensions: [vector]
+  redis:
+    engine: redis
+
+buckets:
+  storage: {}
+
+services:
+  rails:
+    image: docker.io/chatwoot/chatwoot:v4.18.0
+    public: true
+    port: 3000
+    healthcheck: /health
+    cmd: sh -c "bundle exec rails db:chatwoot_prepare && exec bundle exec rails s -p 3000 -b 0.0.0.0"
+    env:
+      RAILS_ENV: production
+      NODE_ENV: production
+      INSTALLATION_ENV: docker
+      RAILS_LOG_TO_STDOUT: true
+      SECRET_KEY_BASE: ${{ hex(64) }}
+      FRONTEND_URL: ${{ services.rails.url }}
+      FORCE_SSL: false
+      ENABLE_ACCOUNT_SIGNUP: ${{ inputs.signups }}
+      POSTGRES_HOST: ${{ databases.db.host }}
+      POSTGRES_PORT: ${{ databases.db.port }}
+      POSTGRES_DATABASE: ${{ databases.db.database }}
+      POSTGRES_USERNAME: ${{ databases.db.user }}
+      POSTGRES_PASSWORD: ${{ databases.db.password }}
+      REDIS_URL: ${{ databases.redis.url }}
+      ACTIVE_STORAGE_SERVICE: s3_compatible
+      STORAGE_BUCKET_NAME: ${{ buckets.storage.bucket }}
+      STORAGE_ACCESS_KEY_ID: ${{ buckets.storage.accessKeyId }}
+      STORAGE_SECRET_ACCESS_KEY: ${{ buckets.storage.secretAccessKey }}
+      STORAGE_REGION: ${{ buckets.storage.region }}
+      STORAGE_ENDPOINT: ${{ buckets.storage.endpoint }}
+      STORAGE_FORCE_PATH_STYLE: true
+      MAILER_SENDER_EMAIL: ${{ addons.email.from }}
+      SMTP_ADDRESS: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_USERNAME: ${{ addons.email.user }}
+      SMTP_PASSWORD: ${{ addons.email.password }}
+      SMTP_AUTHENTICATION: ${{ if(addons.email.enabled, 'login', '') }}
+      SMTP_ENABLE_STARTTLS_AUTO: ${{ if(addons.email.security == 'starttls', 'true', 'false') }}
+      SMTP_SSL: ${{ if(addons.email.security == 'tls', 'true', '') }}
+
+  sidekiq:
+    image: docker.io/chatwoot/chatwoot:v4.18.0
+    cmd: bundle exec sidekiq -C config/sidekiq.yml
+    envFrom: rails
+    dependsOn: [rails]
+
+done:
+  open: ${{ services.rails.url }}
+  message: The first start loads the database schema and can take a few minutes. Then open Chatwoot and create the super admin account in the onboarding screen.

@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Hanko
+  description: Open source authentication backend with passkeys, passcodes, passwords, social logins and MFA, used with the Hanko Elements web components in your own app.
+  docs: https://github.com/teamhanko/hanko/blob/main/backend/README.md
+
+server:
+  minimum: starter
+  recommended: base
+
+inputs:
+  app_domain:
+    type: domain
+    label: App Domain
+    help: Domain of the app your users sign in to, for example example.com. Passkeys are bound to it.
+    required: true
+  app_name:
+    type: string
+    label: App Name
+    help: Shown in emails and in the passkey prompt.
+    default: Hanko Authentication Service
+
+addons:
+  email:
+    use: smtp
+    reason: Hanko emails passcodes to verify addresses and sign people in.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  hanko:
+    image: ghcr.io/teamhanko/hanko:v3.1.2
+    public: true
+    port: 8000
+    healthcheck: /health/ready
+    cmd: serve all
+    dependsOn: [migrate]
+    env:
+      DATABASE_URL: ${{ databases.db.url }}
+      DATABASE_DIALECT: postgres
+      SECRET_KEYS: ${{ secret(48) }}
+      SERVICE_NAME: ${{ inputs.app_name }}
+      WEBAUTHN_RELYING_PARTY_ID: ${{ inputs.app_domain }}
+      WEBAUTHN_RELYING_PARTY_DISPLAY_NAME: ${{ inputs.app_name }}
+      WEBAUTHN_RELYING_PARTY_ORIGINS: https://${{ inputs.app_domain }}
+      CORS_ALLOW_ORIGINS: https://${{ inputs.app_domain }}
+      EMAIL_DELIVERY_ENABLED: true
+      EMAIL_DELIVERY_FROM_ADDRESS: ${{ addons.email.from }}
+      EMAIL_DELIVERY_FROM_NAME: ${{ inputs.app_name }}
+      EMAIL_DELIVERY_SMTP_HOST: ${{ addons.email.host }}
+      EMAIL_DELIVERY_SMTP_PORT: ${{ addons.email.port }}
+      EMAIL_DELIVERY_SMTP_USER: ${{ addons.email.user }}
+      EMAIL_DELIVERY_SMTP_PASSWORD: ${{ addons.email.password }}
+
+  migrate:
+    image: ghcr.io/teamhanko/hanko:v3.1.2
+    cmd: migrate up
+    env:
+      DATABASE_URL: ${{ databases.db.url }}
+      DATABASE_DIALECT: postgres
+
+done:
+  open: ${{ services.hanko.url }}/.well-known/jwks.json
+  message: Hanko is running at ${{ services.hanko.url }}. Point Hanko Elements in your app on https://${{ inputs.app_domain }} at this URL to add sign-in. The migrate service runs the database migrations and then exits; if it restarts, rerunning them is harmless.

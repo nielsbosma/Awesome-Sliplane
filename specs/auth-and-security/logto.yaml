@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Logto
+  description: Open source identity and access management with OIDC, OAuth 2.1, SAML, social sign-in, MFA, organizations and RBAC. Runs the auth endpoint on your own domain and the admin console as a second service.
+  icon: https://raw.githubusercontent.com/logto-io/logto/master/logo.png
+  docs: https://docs.logto.io/logto-oss/get-started-with-oss
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  # Logto's core and admin console must each know the other's URL. Giving the core its own
+  # domain breaks that loop, and keeps the OIDC issuer stable for the apps that use it.
+  domain:
+    use: domain
+    service: logto
+    label: Auth Domain
+    reason: Your apps sign users in through this domain, for example auth.example.com. It becomes the OIDC issuer, so pick one you will keep.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  # Core endpoint that apps and users talk to (port 3001).
+  logto:
+    image: docker.io/svhd/logto:1.45.0
+    public: true
+    port: 3001
+    healthcheck: /api/status
+    env:
+      ADMIN_PORT: 3002
+      TRUST_PROXY_HEADER: 1
+      DB_URL: ${{ databases.db.url }}
+      ENDPOINT: https://${{ addons.domain.hostname }}
+      ADMIN_ENDPOINT: ${{ services.admin.url }}
+      # The image's entrypoint is `npm run`, so `cmd` cannot chain the seed step before start.
+      # This preload runs `logto db seed --swe` (skips when already seeded) once per container
+      # start, before Logto boots, like the entrypoint in the official docker-compose.
+      NODE_OPTIONS: "--import=data:text/javascript,import{execFileSync}from'node:child_process';if(!process.env.LOGTO_SEEDED){process.env.LOGTO_SEEDED='1';execFileSync('npm',['run','cli','db','seed','--','--swe'],{stdio:'inherit'})}"
+
+  # A second instance of the same image whose public port serves the admin console (port 3002).
+  admin:
+    image: docker.io/svhd/logto:1.45.0
+    public: true
+    port: 3002
+    healthcheck: /api/status
+    env:
+      # Core listens on 3001 inside this container, so the public port 3002 reaches the console.
+      PORT: 3001
+      ADMIN_PORT: 3002
+      TRUST_PROXY_HEADER: 1
+      DB_URL: ${{ databases.db.url }}
+      ENDPOINT: https://${{ addons.domain.hostname }}
+      ADMIN_ENDPOINT: ${{ services.admin.url }}
+      # The logto service seeds the database, so this instance skips it.
+      LOGTO_SEEDED: 1
+
+done:
+  open: ${{ services.admin.url }}
+  message: |
+    Add the DNS record for ${{ addons.domain.hostname }} first: the console calls the Management API there. Then open the admin console and create the first admin account. Your apps use https://${{ addons.domain.hostname }} as the Logto endpoint.

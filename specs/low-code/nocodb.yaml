@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: NocoDB
+  description: Open source Airtable alternative that turns a database into a smart spreadsheet, with grid, kanban, gallery and form views, plus REST APIs.
+  icon: https://raw.githubusercontent.com/nocodb/nocodb/develop/packages/nc-gui/assets/img/icons/512x512.png
+  docs: https://nocodb.com/docs/self-hosting/installation/docker
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets NocoDB send invites, password resets and email notifications.
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+
+buckets:
+  attachments: {}
+
+services:
+  nocodb:
+    image: docker.io/nocodb/nocodb:2026.09.1
+    public: true
+    port: 8080
+    healthcheck: /api/v1/health
+    volumes:
+      - name: nocodb-data
+        mountPath: /usr/app/data
+    env:
+      NC_DB: pg://${{ databases.db.host }}:${{ databases.db.port }}?u=${{ databases.db.user }}&p=${{ databases.db.password }}&d=${{ databases.db.database }}
+      NC_AUTH_JWT_SECRET: ${{ secret(48) }}
+      NC_PUBLIC_URL: ${{ services.nocodb.url }}
+      NC_DISABLE_TELE: true
+      NC_S3_BUCKET_NAME: ${{ buckets.attachments.bucket }}
+      NC_S3_REGION: ${{ buckets.attachments.region }}
+      NC_S3_ENDPOINT: ${{ buckets.attachments.endpoint }}
+      NC_S3_ACCESS_KEY: ${{ buckets.attachments.accessKeyId }}
+      NC_S3_ACCESS_SECRET: ${{ buckets.attachments.secretAccessKey }}
+      NC_S3_FORCE_PATH_STYLE: true
+      NC_SMTP_FROM: ${{ addons.email.from }}
+      NC_SMTP_HOST: ${{ addons.email.host }}
+      NC_SMTP_PORT: ${{ addons.email.port }}
+      NC_SMTP_USERNAME: ${{ addons.email.user }}
+      NC_SMTP_PASSWORD: ${{ addons.email.password }}
+      NC_SMTP_SECURE: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+
+done:
+  open: ${{ services.nocodb.url }}
+  message: Open NocoDB and sign up. The first account becomes the super admin.

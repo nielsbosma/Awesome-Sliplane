@@ -1,0 +1,129 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Saleor
+  description: Headless, GraphQL-first commerce platform with a React dashboard for managing products, orders, customers and channels.
+  icon: https://github.com/saleor.png
+  docs: https://docs.saleor.io/setup/docker-compose
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: The email you sign in to the dashboard with.
+    required: true
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Saleor send order confirmations, account and password reset emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  cache:
+    engine: redis
+    version: 8
+
+buckets:
+  media: {}
+
+volumes:
+  saleor-keys:
+    description: The RSA key Saleor signs tokens and webhooks with, shared by the API and the worker.
+  saleor-media:
+    description: Private files such as exports, shared by the API and the worker.
+
+services:
+  api:
+    image: ghcr.io/saleor/saleor:3.23.42
+    public: true
+    port: 8000
+    healthcheck: /health/
+    cmd: sh -c "printenv SALEOR_START > /tmp/start.sh && exec sh /tmp/start.sh"
+    volumes:
+      - name: saleor-keys
+        mountPath: /app/keys
+      - name: saleor-media
+        mountPath: /app/media
+    env:
+      # Generates the JWT signing key once, runs migrations, creates the admin, then starts the API.
+      SALEOR_START: |
+        set -e
+        if [ ! -f /app/keys/jwt.pem ]; then
+          python3 -c 'from cryptography.hazmat.primitives.asymmetric import rsa; from cryptography.hazmat.primitives import serialization as s; k = rsa.generate_private_key(public_exponent=65537, key_size=2048); open("/app/keys/jwt.pem.tmp", "wb").write(k.private_bytes(s.Encoding.PEM, s.PrivateFormat.PKCS8, s.NoEncryption()))'
+          mv /app/keys/jwt.pem.tmp /app/keys/jwt.pem
+        fi
+        RSA_PRIVATE_KEY="$(cat /app/keys/jwt.pem)"
+        export RSA_PRIVATE_KEY
+        python3 manage.py migrate --noinput
+        python3 manage.py createsuperuser --noinput || true
+        exec uvicorn saleor.asgi:application --host=0.0.0.0 --port=8000 --workers=2 --lifespan=auto --ws=none --no-server-header --no-access-log --timeout-keep-alive=35 --timeout-graceful-shutdown=30 --limit-max-requests=10000
+      DEBUG: "False"
+      SECRET_KEY: ${{ secret(50) }}
+      PUBLIC_URL: ${{ services.api.url }}/
+      ALLOWED_HOSTS: ${{ services.api.host }},localhost,127.0.0.1
+      # Hosts Saleor may send people back to (password reset, staff invites). It can't reference the
+      # dashboard here, because the dashboard references the API and the spec forbids reference loops.
+      # Add the dashboard and storefront hosts in the service's environment after deploying.
+      ALLOWED_CLIENT_HOSTS: ${{ services.api.host }}
+      DATABASE_URL: ${{ databases.db.url }}
+      CACHE_URL: ${{ databases.cache.url }}/0
+      CELERY_BROKER_URL: ${{ databases.cache.url }}/1
+      DEFAULT_CHANNEL_SLUG: default-channel
+      HTTP_IP_FILTER_ENABLED: "True"
+      HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS: "False"
+      AWS_MEDIA_BUCKET_NAME: ${{ buckets.media.bucket }}
+      AWS_S3_ENDPOINT_URL: ${{ buckets.media.endpoint }}
+      AWS_S3_REGION_NAME: ${{ buckets.media.region }}
+      AWS_ACCESS_KEY_ID: ${{ buckets.media.accessKeyId }}
+      AWS_SECRET_ACCESS_KEY: ${{ buckets.media.secretAccessKey }}
+      AWS_QUERYSTRING_AUTH: "True"
+      DJANGO_SUPERUSER_EMAIL: ${{ inputs.admin_email }}
+      DJANGO_SUPERUSER_PASSWORD: ${{ secrets.admin_password }}
+      EMAIL_URL: ${{ addons.email.url }}${{ if(addons.email.security == 'starttls', '/?tls=True', '') }}
+      DEFAULT_FROM_EMAIL: ${{ addons.email.from }}
+
+  worker:
+    image: ghcr.io/saleor/saleor:3.23.42
+    cmd: sh -c "printenv SALEOR_START > /tmp/start.sh && exec sh /tmp/start.sh"
+    envFrom: api
+    volumes:
+      - name: saleor-keys
+        mountPath: /app/keys
+      - name: saleor-media
+        mountPath: /app/media
+    env:
+      # Waits for the API to create the signing key, then runs Celery with beat.
+      SALEOR_START: |
+        set -e
+        while [ ! -f /app/keys/jwt.pem ]; do sleep 2; done
+        RSA_PRIVATE_KEY="$(cat /app/keys/jwt.pem)"
+        export RSA_PRIVATE_KEY
+        exec celery -A saleor --app=saleor.celeryconf:app worker --loglevel=info -B
+
+  dashboard:
+    image: ghcr.io/saleor/saleor-dashboard:3.23.39
+    public: true
+    port: 80
+    healthcheck: /dashboard/
+    env:
+      API_URL: ${{ services.api.url }}/graphql/
+
+done:
+  open: ${{ services.dashboard.url }}/dashboard/
+  message: Sign in to the dashboard with your admin email and the password below. The API runs migrations on first start, which takes a few minutes. Create a channel and warehouse before adding products. For staff invites and password resets, add the dashboard's host to ALLOWED_CLIENT_HOSTS on the api service.
