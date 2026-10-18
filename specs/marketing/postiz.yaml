@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Postiz
+  description: Open-source social media scheduling tool. Plan, write with AI, and publish posts to X, LinkedIn, Instagram, Bluesky, Mastodon and 20+ other channels.
+  icon: https://raw.githubusercontent.com/gitroomhq/postiz-app/main/apps/frontend/public/logo.svg
+  docs: https://docs.postiz.com/quickstart
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: The first account can always register. When off, nobody else can sign up on their own.
+    default: false
+
+addons:
+  email:
+    use: resend
+    optional: true
+    reason: Sends account activation, password reset and notification emails. When enabled, new accounts must confirm their email.
+  llm:
+    use: llm
+    label: OpenAI
+    providers: [openai]
+    optional: true
+    reason: Powers the AI writing assistant and image generation.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  cache:
+    engine: redis
+
+services:
+  postiz:
+    image: ghcr.io/gitroomhq/postiz-app:v2.25.1
+    public: true
+    port: 5000
+    healthcheck: /api/
+    dependsOn: [temporal]
+    volumes:
+      - name: postiz-config
+        mountPath: /config
+      - name: postiz-uploads
+        mountPath: /uploads
+    env:
+      MAIN_URL: ${{ services.postiz.url }}
+      FRONTEND_URL: ${{ services.postiz.url }}
+      NEXT_PUBLIC_BACKEND_URL: ${{ services.postiz.url }}/api
+      PORT: 3000
+      BACKEND_INTERNAL_URL: http://localhost:3000
+      JWT_SECRET: ${{ secret(64) }}
+      DATABASE_URL: ${{ databases.db.url }}
+      REDIS_URL: ${{ databases.cache.url }}
+      TEMPORAL_ADDRESS: ${{ services.temporal.internalHost }}:7233
+      IS_GENERAL: "true"
+      DISABLE_REGISTRATION: ${{ if(inputs.signups, 'false', 'true') }}
+      STORAGE_PROVIDER: local
+      UPLOAD_DIRECTORY: /uploads
+      NEXT_PUBLIC_UPLOAD_DIRECTORY: /uploads
+      API_LIMIT: 30
+      EMAIL_PROVIDER: ${{ if(addons.email.enabled, 'resend', '') }}
+      RESEND_API_KEY: ${{ addons.email.apiKey }}
+      EMAIL_FROM_ADDRESS: ${{ addons.email.from }}
+      EMAIL_FROM_NAME: ${{ if(addons.email.enabled, 'Postiz', '') }}
+      OPENAI_API_KEY: ${{ addons.llm.apiKey }}
+
+  temporal:
+    image: docker.io/temporalio/temporal:1.9.1
+    cmd: server start-dev --ip 0.0.0.0 --headless --db-filename /home/temporal/temporal.db
+    volumes:
+      - name: temporal-data
+        mountPath: /home/temporal
+
+done:
+  open: ${{ services.postiz.url }}/auth
+  message: Open Postiz and register the first account. Connect social channels by adding each platform's API keys (X_API_KEY, LINKEDIN_CLIENT_ID and so on) to the postiz service's environment.

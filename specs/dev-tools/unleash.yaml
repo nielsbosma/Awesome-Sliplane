@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Unleash
+  description: Open source feature flag management. Roll out features gradually, run A/B tests and kill switches, with SDKs for most languages and frameworks.
+  icon: https://raw.githubusercontent.com/Unleash/unleash/main/.github/logo.png
+  docs: https://docs.getunleash.io/using-unleash/deploy/getting-started
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Unleash send user invites and password resets.
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 24
+    label: Admin Password
+    show: true
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  unleash:
+    image: docker.io/unleashorg/unleash-server:8.2.0
+    public: true
+    port: 4242
+    healthcheck: /health
+    env:
+      DATABASE_URL: ${{ databases.db.url }}
+      UNLEASH_URL: ${{ services.unleash.url }}
+      UNLEASH_DEFAULT_ADMIN_USERNAME: admin
+      UNLEASH_DEFAULT_ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      EMAIL_HOST: ${{ addons.email.host }}
+      EMAIL_PORT: ${{ addons.email.port }}
+      EMAIL_SECURE: ${{ if(addons.email.security == 'tls', 'true', '') }}
+      EMAIL_USER: ${{ addons.email.user }}
+      EMAIL_PASSWORD: ${{ addons.email.password }}
+      EMAIL_SENDER: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.unleash.url }}
+  message: Sign in with the username admin and the admin password below, then change it under your profile.

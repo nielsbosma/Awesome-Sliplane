@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# The official image is built with NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000. Its start script
+# (scripts/start.sh) rewrites that value in the built .next and public files to the runtime
+# NEXT_PUBLIC_WEBAPP_URL on every boot, so the public URL can be set here without rebuilding.
+# Other NEXT_PUBLIC_* values (license consent, telemetry key, API v2 URL) stay baked in.
+
+app:
+  name: Cal.com
+  description: Open-source scheduling infrastructure. Share booking links, connect your calendars and let people book time with you, backed by Postgres.
+  icon: https://raw.githubusercontent.com/calcom/cal.com/v6.2.0/apps/web/public/cal-com-icon.svg
+  docs: https://cal.com/docs/self-hosting/docker
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends booking confirmations, reminders and password resets.
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+
+services:
+  calcom:
+    image: docker.io/calcom/cal.com:v6.2.0
+    public: true
+    port: 3000
+    healthcheck: /api/version
+    env:
+      NEXT_PUBLIC_WEBAPP_URL: ${{ services.calcom.url }}
+      NEXTAUTH_URL: ${{ services.calcom.url }}
+      NEXTAUTH_SECRET: ${{ secret(32) }}
+      CALENDSO_ENCRYPTION_KEY: ${{ secret(32) }}
+      DATABASE_URL: ${{ databases.db.url }}
+      DATABASE_DIRECT_URL: ${{ databases.db.url }}
+      DATABASE_HOST: ${{ databases.db.host }}:${{ databases.db.port }}
+      EMAIL_SERVER_HOST: ${{ addons.email.host }}
+      EMAIL_SERVER_PORT: ${{ addons.email.port }}
+      EMAIL_SERVER_USER: ${{ addons.email.user }}
+      EMAIL_SERVER_PASSWORD: ${{ addons.email.password }}
+      EMAIL_FROM: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.calcom.url }}
+  message: The first start runs database migrations and can take a few minutes. Then open Cal.com and follow the setup wizard to create the admin user.

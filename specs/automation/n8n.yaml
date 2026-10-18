@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: n8n
+  description: Workflow automation with a visual editor, 400+ integrations and AI nodes, backed by Postgres.
+  icon: https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-logo.png
+  docs: https://docs.n8n.io/hosting/
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  timezone:
+    type: string
+    label: Timezone
+    help: Used by schedule triggers, for example Europe/Stockholm.
+    default: Europe/Berlin
+  runner:
+    type: boolean
+    label: Run Code Nodes in a Separate Runner
+    help: Runs JavaScript and Python Code nodes in their own container, as n8n recommends. Python needs this. Uses about 200 MB more memory.
+    default: true
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets n8n send user invites and password resets.
+
+secrets:
+  runners_token:
+    format: alphanumeric
+    length: 48
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  n8n:
+    image: docker.io/n8nio/n8n:2.43.7
+    public: true
+    port: 5678
+    healthcheck: /healthz
+    volumes:
+      - name: n8n-data
+        mountPath: /home/node/.n8n
+    env:
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      N8N_HOST: ${{ services.n8n.host }}
+      N8N_EDITOR_BASE_URL: ${{ services.n8n.url }}/
+      WEBHOOK_URL: ${{ services.n8n.url }}/
+      N8N_PROXY_HOPS: 1
+      NODE_ENV: production
+      N8N_ENCRYPTION_KEY: ${{ secret(32) }}
+      GENERIC_TIMEZONE: ${{ inputs.timezone }}
+      TZ: ${{ inputs.timezone }}
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: ${{ databases.db.host }}
+      DB_POSTGRESDB_PORT: ${{ databases.db.port }}
+      DB_POSTGRESDB_DATABASE: ${{ databases.db.database }}
+      DB_POSTGRESDB_USER: ${{ databases.db.user }}
+      DB_POSTGRESDB_PASSWORD: ${{ databases.db.password }}
+      N8N_RUNNERS_MODE: ${{ if(inputs.runner, 'external', 'internal') }}
+      N8N_RUNNERS_AUTH_TOKEN: ${{ if(inputs.runner, secrets.runners_token, '') }}
+      N8N_RUNNERS_BROKER_LISTEN_ADDRESS: ${{ if(inputs.runner, '0.0.0.0', '') }}
+      N8N_EMAIL_MODE: ${{ if(addons.email.enabled, 'smtp', '') }}
+      N8N_SMTP_HOST: ${{ addons.email.host }}
+      N8N_SMTP_PORT: ${{ addons.email.port }}
+      N8N_SMTP_USER: ${{ addons.email.user }}
+      N8N_SMTP_PASS: ${{ addons.email.password }}
+      N8N_SMTP_SENDER: ${{ addons.email.from }}
+      N8N_SMTP_SSL: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+
+  n8n-runner:
+    when: ${{ inputs.runner }}
+    image: docker.io/n8nio/runners:2.43.7
+    dependsOn: [n8n]
+    env:
+      N8N_RUNNERS_AUTH_TOKEN: ${{ secrets.runners_token }}
+      N8N_RUNNERS_TASK_BROKER_URI: http://${{ services.n8n.internalHost }}:5679
+
+done:
+  open: ${{ services.n8n.url }}
+  message: Open n8n and set up the owner account.

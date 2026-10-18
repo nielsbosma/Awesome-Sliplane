@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: PrestaShop
+  description: Open source e-commerce platform with a storefront, back office, catalog, orders, payments and a large module marketplace.
+  icon: https://raw.githubusercontent.com/PrestaShop/PrestaShop/develop/img/logo.png
+  docs: https://devdocs.prestashop-project.org/9/basics/installation/environments/docker/
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: You sign in to the back office with this address.
+    required: true
+  language:
+    type: string
+    label: Default Language
+    help: Two-letter language code installed as the shop default, for example en, fr or de.
+    default: en
+  country:
+    type: string
+    label: Default Country
+    help: Two-letter country code for the shop, for example GB, FR or US.
+    default: GB
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+  admin_folder:
+    format: alphanumeric
+    length: 10
+  db_password:
+    format: alphanumeric
+    length: 32
+
+volumes:
+  prestashop-files:
+    description: Shop files, including modules, themes and product images
+
+services:
+  shop:
+    image: docker.io/prestashop/prestashop:9.2.0-apache
+    public: true
+    port: 80
+    dependsOn: [mariadb]
+    volumes:
+      - name: prestashop-files
+        mountPath: /var/www/html
+    env:
+      DB_SERVER: ${{ services.mariadb.internalHost }}
+      DB_PORT: 3306
+      DB_NAME: prestashop
+      DB_USER: prestashop
+      DB_PASSWD: ${{ secrets.db_password }}
+      DB_PREFIX: ps_
+      PS_INSTALL_AUTO: 1
+      PS_INSTALL_DB: 0
+      PS_DOMAIN: ${{ services.shop.host }}
+      PS_ENABLE_SSL: 1
+      PS_LANGUAGE: ${{ inputs.language }}
+      PS_COUNTRY: ${{ inputs.country }}
+      PS_FOLDER_ADMIN: admin${{ secrets.admin_folder }}
+      ADMIN_MAIL: ${{ inputs.admin_email }}
+      ADMIN_PASSWD: ${{ secrets.admin_password }}
+      PS_DEV_MODE: 0
+
+  mariadb:
+    image: docker.io/library/mariadb:11.4.13
+    port: 3306
+    protocol: tcp
+    volumes:
+      - name: prestashop-mariadb
+        mountPath: /var/lib/mysql
+    env:
+      MARIADB_DATABASE: prestashop
+      MARIADB_USER: prestashop
+      MARIADB_PASSWORD: ${{ secrets.db_password }}
+      MARIADB_RANDOM_ROOT_PASSWORD: 1
+
+done:
+  open: ${{ services.shop.url }}/admin${{ secrets.admin_folder }}
+  message: The first start installs PrestaShop, which takes a few minutes. Then sign in to the back office with ${{ inputs.admin_email }} and the admin password below. Bookmark this back office URL; the storefront is at ${{ services.shop.url }}.

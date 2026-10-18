@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# Based on mautic/docker-mautic examples/basic. Mautic needs MySQL (no Postgres support),
+# so MySQL runs as a private service. Web, cron and worker share the image and volumes.
+
+app:
+  name: Mautic
+  description: Open-source marketing automation for email campaigns, segments, landing pages, forms and lead scoring.
+  icon: https://raw.githubusercontent.com/mautic/mautic/7.x/app/assets/images/mautic_logo_db200.png
+  docs: https://github.com/mautic/docker-mautic
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  timezone:
+    type: string
+    label: Timezone
+    help: PHP timezone, for example Europe/Stockholm.
+    default: UTC
+
+secrets:
+  db_password:
+    format: alphanumeric
+    length: 32
+
+volumes:
+  mautic-config:
+    description: Mautic's local.php and other configuration
+  mautic-logs:
+    description: Application logs
+  mautic-files:
+    description: Uploaded files
+  mautic-images:
+    description: Uploaded images
+
+services:
+  mysql:
+    image: docker.io/library/mysql:8.4.11
+    volumes:
+      - name: mautic-mysql-data
+        mountPath: /var/lib/mysql
+    env:
+      MYSQL_ROOT_PASSWORD: ${{ secret(32) }}
+      MYSQL_DATABASE: mautic
+      MYSQL_USER: mautic
+      MYSQL_PASSWORD: ${{ secrets.db_password }}
+
+  web:
+    image: docker.io/mautic/mautic:7.2.1-apache
+    public: true
+    port: 80
+    dependsOn: [mysql]
+    volumes: &mautic-volumes
+      - name: mautic-config
+        mountPath: /var/www/html/config
+      - name: mautic-logs
+        mountPath: /var/www/html/var/logs
+      - name: mautic-files
+        mountPath: /var/www/html/docroot/media/files
+      - name: mautic-images
+        mountPath: /var/www/html/docroot/media/images
+    env:
+      DOCKER_MAUTIC_ROLE: mautic_web
+      MAUTIC_DB_HOST: ${{ services.mysql.internalHost }}
+      MAUTIC_DB_PORT: 3306
+      MAUTIC_DB_DATABASE: mautic
+      MAUTIC_DB_USER: mautic
+      MAUTIC_DB_PASSWORD: ${{ secrets.db_password }}
+      MAUTIC_MESSENGER_DSN_EMAIL: doctrine://default
+      MAUTIC_MESSENGER_DSN_HIT: doctrine://default
+      MAUTIC_SITE_URL: ${{ services.web.url }}
+      MAUTIC_TRUSTED_PROXIES: '["0.0.0.0/0"]'
+      PHP_INI_VALUE_DATE_TIMEZONE: ${{ inputs.timezone }}
+
+  cron:
+    image: docker.io/mautic/mautic:7.2.1-apache
+    envFrom: web
+    dependsOn: [web]
+    volumes: *mautic-volumes
+    env:
+      DOCKER_MAUTIC_ROLE: mautic_cron
+
+  worker:
+    image: docker.io/mautic/mautic:7.2.1-apache
+    envFrom: web
+    dependsOn: [web]
+    volumes: *mautic-volumes
+    env:
+      DOCKER_MAUTIC_ROLE: mautic_worker
+
+done:
+  open: ${{ services.web.url }}
+  message: Open Mautic and run the installer. The database fields are prefilled; on the last step create your admin account and set up email sending.

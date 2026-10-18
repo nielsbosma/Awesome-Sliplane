@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: ToolJet
+  description: Low-code platform for building internal tools, dashboards and workflows on top of your databases and APIs, with a built-in no-code database.
+  icon: https://github.com/ToolJet.png
+  docs: https://docs.tooljet.com/docs/setup/docker
+
+server:
+  minimum: medium
+  recommended: large
+
+secrets:
+  pgrst_jwt:
+    format: hex
+    length: 64
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets ToolJet send workspace invites and password resets.
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+    database: tooljet_production
+
+services:
+  tooljet:
+    image: docker.io/tooljet/tooljet-ce:v3.20.246-lts
+    public: true
+    port: 3000
+    healthcheck: /api/health
+    cmd: npm run start:prod
+    env:
+      TOOLJET_HOST: ${{ services.tooljet.url }}
+      SERVE_CLIENT: "true"
+      LOCKBOX_MASTER_KEY: ${{ hex(64) }}
+      SECRET_KEY_BASE: ${{ hex(128) }}
+      DEPLOYMENT_PLATFORM: docker
+      # App database (the managed Postgres database)
+      PG_HOST: ${{ databases.db.host }}
+      PG_PORT: ${{ databases.db.port }}
+      PG_USER: ${{ databases.db.user }}
+      PG_PASS: ${{ databases.db.password }}
+      PG_DB: ${{ databases.db.database }}
+      # ToolJet Database: a second database on the same Postgres server, created on first boot
+      TOOLJET_DB: tooljet_db
+      TOOLJET_DB_HOST: ${{ databases.db.host }}
+      TOOLJET_DB_PORT: ${{ databases.db.port }}
+      TOOLJET_DB_USER: ${{ databases.db.user }}
+      TOOLJET_DB_PASS: ${{ databases.db.password }}
+      PGRST_HOST: ${{ services.postgrest.internalUrl }}
+      PGRST_JWT_SECRET: ${{ secrets.pgrst_jwt }}
+      DISABLE_TOOLJET_TELEMETRY: "true"
+      DEFAULT_FROM_EMAIL: ${{ addons.email.from }}
+      SMTP_DOMAIN: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_USERNAME: ${{ addons.email.user }}
+      SMTP_PASSWORD: ${{ addons.email.password }}
+
+  postgrest:
+    image: docker.io/postgrest/postgrest:v12.2.12
+    port: 3000
+    env:
+      PGRST_SERVER_PORT: 3000
+      PGRST_DB_URI: postgres://${{ databases.db.user }}:${{ databases.db.password }}@${{ databases.db.host }}:${{ databases.db.port }}/tooljet_db
+      PGRST_DB_PRE_CONFIG: postgrest.pre_config
+      PGRST_JWT_SECRET: ${{ secrets.pgrst_jwt }}
+
+done:
+  open: ${{ services.tooljet.url }}
+  message: ToolJet runs database migrations on first start, which can take a few minutes. Open it and create the first account; it becomes the instance admin.

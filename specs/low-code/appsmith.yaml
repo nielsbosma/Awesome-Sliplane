@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Appsmith
+  description: Low-code platform for building internal tools, admin panels and dashboards on top of your databases and APIs.
+  icon: https://raw.githubusercontent.com/appsmithorg/appsmith/release/app/client/src/assets/images/appsmith_logo_square.png
+  docs: https://docs.appsmith.com/getting-started/setup/installation-guides/docker
+
+server:
+  minimum: medium
+  recommended: large
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Appsmith send invites, password resets and email notifications.
+
+services:
+  appsmith:
+    image: docker.io/appsmith/appsmith-ce:v2.5.0
+    public: true
+    port: 80
+    healthcheck: /api/v1/health
+    volumes:
+      - name: appsmith-stacks
+        mountPath: /appsmith-stacks
+    env:
+      APPSMITH_ENCRYPTION_PASSWORD: ${{ secret(32) }}
+      APPSMITH_ENCRYPTION_SALT: ${{ secret(32) }}
+      APPSMITH_DISABLE_TELEMETRY: true
+      APPSMITH_MAIL_ENABLED: ${{ if(addons.email.enabled, 'true', '') }}
+      APPSMITH_MAIL_HOST: ${{ addons.email.host }}
+      APPSMITH_MAIL_PORT: ${{ addons.email.port }}
+      APPSMITH_MAIL_USERNAME: ${{ addons.email.user }}
+      APPSMITH_MAIL_PASSWORD: ${{ addons.email.password }}
+      APPSMITH_MAIL_FROM: ${{ addons.email.from }}
+      APPSMITH_REPLY_TO: ${{ addons.email.from }}
+      APPSMITH_MAIL_SMTP_AUTH: ${{ if(addons.email.enabled, 'true', '') }}
+      APPSMITH_MAIL_SMTP_TLS_ENABLED: ${{ if(addons.email.enabled, if(addons.email.security == 'starttls', 'true', 'false'), '') }}
+
+done:
+  open: ${{ services.appsmith.url }}
+  message: Appsmith takes a few minutes to start the first time. Open it and create the admin account; the first user to sign up becomes the instance admin. Turn off public sign up under Admin Settings.

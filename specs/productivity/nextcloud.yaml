@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Nextcloud
+  description: Self-hosted file sync and sharing with calendars, contacts, office documents and hundreds of apps. Backed by Postgres and Redis.
+  icon: https://raw.githubusercontent.com/nextcloud/server/master/core/img/logo/logo.png
+  docs: https://github.com/nextcloud/docker
+
+server:
+  minimum: base
+  recommended: medium
+  diskGb: 100
+
+inputs:
+  admin_user:
+    type: string
+    label: Admin Username
+    default: admin
+    required: true
+  mail_from_user:
+    type: string
+    label: Mail From User
+    help: The part before the @ in the sender address, for example nextcloud.
+    default: nextcloud
+    when: ${{ addons.email.enabled }}
+  mail_domain:
+    type: domain
+    label: Mail Domain
+    help: The part after the @ in the sender address, for example example.com.
+    when: ${{ addons.email.enabled }}
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends password resets, share notifications and activity emails.
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 24
+    label: Admin Password
+    show: true
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  cache:
+    engine: redis
+
+volumes:
+  nextcloud-html:
+    description: Nextcloud code, config, apps and user files
+
+services:
+  nextcloud:
+    image: docker.io/library/nextcloud:34.0.5-apache
+    public: true
+    port: 80
+    healthcheck: /status.php
+    volumes:
+      - name: nextcloud-html
+        mountPath: /var/www/html
+    env:
+      NEXTCLOUD_ADMIN_USER: ${{ inputs.admin_user }}
+      NEXTCLOUD_ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      NEXTCLOUD_TRUSTED_DOMAINS: ${{ services.nextcloud.host }}
+      OVERWRITEPROTOCOL: https
+      OVERWRITEHOST: ${{ services.nextcloud.host }}
+      OVERWRITECLIURL: ${{ services.nextcloud.url }}
+      TRUSTED_PROXIES: 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+      APACHE_DISABLE_REWRITE_IP: 1
+      POSTGRES_HOST: ${{ databases.db.host }}:${{ databases.db.port }}
+      POSTGRES_DB: ${{ databases.db.database }}
+      POSTGRES_USER: ${{ databases.db.user }}
+      POSTGRES_PASSWORD: ${{ databases.db.password }}
+      REDIS_HOST: ${{ databases.cache.host }}
+      REDIS_HOST_PORT: ${{ databases.cache.port }}
+      PHP_MEMORY_LIMIT: 512M
+      PHP_UPLOAD_LIMIT: 2G
+      SMTP_HOST: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_SECURE: ${{ if(addons.email.security == 'tls', 'ssl', if(addons.email.security == 'starttls', 'tls', '')) }}
+      SMTP_NAME: ${{ addons.email.user }}
+      SMTP_PASSWORD: ${{ addons.email.password }}
+      MAIL_FROM_ADDRESS: ${{ if(addons.email.enabled, inputs.mail_from_user, '') }}
+      MAIL_DOMAIN: ${{ if(addons.email.enabled, inputs.mail_domain, '') }}
+
+  cron:
+    image: docker.io/library/nextcloud:34.0.5-apache
+    cmd: /cron.sh
+    envFrom: nextcloud
+    dependsOn: [nextcloud]
+    volumes:
+      - name: nextcloud-html
+        mountPath: /var/www/html
+
+done:
+  open: ${{ services.nextcloud.url }}
+  message: Sign in as ${{ inputs.admin_user }} with the admin password below. The first start installs Nextcloud and can take a few minutes. Under Administration settings > Basic settings, switch background jobs to Cron.

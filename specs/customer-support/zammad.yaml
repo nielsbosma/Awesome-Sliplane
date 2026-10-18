@@ -1,0 +1,125 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# Based on zammad/zammad-docker-compose: one image runs init, railsserver, scheduler, websocket
+# and nginx via its entrypoint. Nginx is configured from env by the entrypoint, no config file needed.
+
+app:
+  name: Zammad
+  description: Open-source helpdesk and ticketing system for email, chat, phone and social channels, with a knowledge base, SLAs and reporting.
+  icon: https://raw.githubusercontent.com/zammad/zammad/stable/public/assets/images/logo.svg
+  docs: https://docs.zammad.org/en/latest/install/docker-compose.html
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  timezone:
+    type: string
+    label: Timezone
+    help: For example Europe/Stockholm.
+    default: Europe/Berlin
+  elasticsearch:
+    type: boolean
+    label: Run Elasticsearch
+    help: Gives full-text search across tickets and attachments, as Zammad recommends. Uses about 1.5 GB more memory; pick a Large server or bigger.
+    default: false
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  cache:
+    engine: redis
+
+volumes:
+  zammad-storage:
+    description: Attachments, when Zammad is set to store files on disk
+
+services:
+  memcached:
+    image: docker.io/library/memcached:1.6.45-alpine
+    cmd: memcached -m 256M
+
+  elasticsearch:
+    when: ${{ inputs.elasticsearch }}
+    image: docker.io/library/elasticsearch:9.5.5
+    volumes:
+      - name: zammad-elasticsearch-data
+        mountPath: /usr/share/elasticsearch/data
+    env:
+      ES_SETTING_DISCOVERY_TYPE: single-node
+      ES_SETTING_XPACK_SECURITY_ENABLED: "false"
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+
+  init:
+    image: ghcr.io/zammad/zammad:7.2.2-0011
+    # zammad-init exits when done; keep the container alive so it doesn't rerun in a restart loop.
+    cmd: bash -c "/opt/zammad/bin/docker-entrypoint zammad-init && exec sleep infinity"
+    envFrom: railsserver
+    dependsOn: [memcached]
+    env:
+      # Only applied by the seed on first install; change later under Settings > System.
+      ZAMMAD_FQDN: ${{ services.nginx.host }}
+      ZAMMAD_HTTP_TYPE: https
+    volumes:
+      - name: zammad-storage
+        mountPath: /opt/zammad/storage
+
+  railsserver:
+    image: ghcr.io/zammad/zammad:7.2.2-0011
+    cmd: zammad-railsserver
+    volumes:
+      - name: zammad-storage
+        mountPath: /opt/zammad/storage
+    env:
+      POSTGRESQL_HOST: ${{ databases.db.host }}
+      POSTGRESQL_PORT: ${{ databases.db.port }}
+      POSTGRESQL_DB: ${{ databases.db.database }}
+      POSTGRESQL_USER: ${{ databases.db.user }}
+      POSTGRESQL_PASS: ${{ databases.db.password }}
+      POSTGRESQL_OPTIONS: "?pool=50"
+      POSTGRESQL_DB_CREATE: "false"
+      REDIS_URL: ${{ databases.cache.url }}
+      MEMCACHE_SERVERS: ${{ services.memcached.internalHost }}:11211
+      ELASTICSEARCH_ENABLED: ${{ if(inputs.elasticsearch, 'true', 'false') }}
+      ELASTICSEARCH_HOST: ${{ services.elasticsearch.internalHost }}
+      ELASTICSEARCH_PORT: 9200
+      TZ: ${{ inputs.timezone }}
+
+  scheduler:
+    image: ghcr.io/zammad/zammad:7.2.2-0011
+    cmd: zammad-scheduler
+    envFrom: railsserver
+    dependsOn: [railsserver]
+    volumes:
+      - name: zammad-storage
+        mountPath: /opt/zammad/storage
+
+  websocket:
+    image: ghcr.io/zammad/zammad:7.2.2-0011
+    cmd: zammad-websocket
+    envFrom: railsserver
+    dependsOn: [railsserver]
+
+  nginx:
+    image: ghcr.io/zammad/zammad:7.2.2-0011
+    cmd: zammad-nginx
+    public: true
+    port: 8080
+    healthcheck: /
+    envFrom: railsserver
+    dependsOn: [railsserver, websocket]
+    env:
+      NGINX_PORT: 8080
+      NGINX_SERVER_SCHEME: https
+      NGINX_CLIENT_MAX_BODY_SIZE: 50M
+      ZAMMAD_RAILSSERVER_HOST: ${{ services.railsserver.internalHost }}
+      ZAMMAD_RAILSSERVER_PORT: 3000
+      ZAMMAD_WEBSOCKET_HOST: ${{ services.websocket.internalHost }}
+      ZAMMAD_WEBSOCKET_PORT: 6042
+
+done:
+  open: ${{ services.nginx.url }}
+  message: The first start runs database setup and can take several minutes. Then open Zammad and use the setup wizard to create the admin account and connect an email channel.

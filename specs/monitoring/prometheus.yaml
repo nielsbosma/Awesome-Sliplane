@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Prometheus
+  description: Time-series metrics database. Runs privately on your server and accepts metrics pushed over Prometheus remote write and OTLP, ready to query from Grafana or other services on the same server.
+  icon: https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/images/prometheus-logo.svg
+  docs: https://prometheus.io/docs/prometheus/latest/installation/
+
+server:
+  minimum: base
+  recommended: medium
+
+services:
+  prometheus:
+    image: docker.io/prom/prometheus:v3.15.0
+    # Prometheus has no authentication, so it is not exposed to the internet.
+    # Services on the same server reach it at its internal URL.
+    public: false
+    port: 9090
+    healthcheck: /-/healthy
+    # cmd is passed as-is (no expressions); metrics are kept for 30 days.
+    cmd: --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=30d --web.enable-remote-write-receiver --web.enable-otlp-receiver
+    volumes:
+      - name: prometheus-data
+        mountPath: /prometheus
+
+done:
+  message: "Prometheus runs privately at ${{ services.prometheus.internalUrl }}. Push metrics to /api/v1/write (remote write) or /api/v1/otlp/v1/metrics (OTLP), and add it as a data source in Grafana on the same server. It has no login, so keep it private."

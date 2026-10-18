@@ -1,0 +1,126 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: EspoCRM
+  description: Open-source CRM for contacts, accounts, leads, opportunities, cases, email and calendars, with a customizable entity manager, workflows and a REST API.
+  icon: https://raw.githubusercontent.com/espocrm/espocrm/master/client/img/favicon.svg
+  docs: https://docs.espocrm.com/administration/docker/installation/
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+  db_password:
+    format: alphanumeric
+    length: 32
+  db_root_password:
+    format: alphanumeric
+    length: 32
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets EspoCRM send outbound email, notifications and password resets.
+
+volumes:
+  espocrm-data:
+    description: Config, uploads and logs, shared by the app, daemon and WebSocket containers.
+  espocrm-custom:
+    description: Server-side customizations and extensions.
+  espocrm-custom-client:
+    description: Client-side customizations and extensions.
+
+services:
+  mariadb:
+    image: docker.io/library/mariadb:11.8.9
+    port: 3306
+    protocol: tcp
+    volumes:
+      - name: espocrm-db
+        mountPath: /var/lib/mysql
+    env:
+      MARIADB_DATABASE: espocrm
+      MARIADB_USER: espocrm
+      MARIADB_PASSWORD: ${{ secrets.db_password }}
+      MARIADB_ROOT_PASSWORD: ${{ secrets.db_root_password }}
+
+  espocrm:
+    image: docker.io/espocrm/espocrm:10.0.10-apache
+    public: true
+    port: 80
+    healthcheck: /
+    dependsOn:
+      - mariadb
+    volumes:
+      - name: espocrm-data
+        mountPath: /var/www/html/data
+      - name: espocrm-custom
+        mountPath: /var/www/html/custom
+      - name: espocrm-custom-client
+        mountPath: /var/www/html/client/custom
+    env:
+      ESPOCRM_DATABASE_PLATFORM: Mysql
+      ESPOCRM_DATABASE_HOST: ${{ services.mariadb.internalHost }}
+      ESPOCRM_DATABASE_PORT: 3306
+      ESPOCRM_DATABASE_NAME: espocrm
+      ESPOCRM_DATABASE_USER: espocrm
+      ESPOCRM_DATABASE_PASSWORD: ${{ secrets.db_password }}
+      ESPOCRM_ADMIN_USERNAME: admin
+      ESPOCRM_ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      ESPOCRM_SITE_URL: ${{ services.espocrm.url }}
+      # Any ESPOCRM_CONFIG_* variable is written to the shared config on start.
+      ESPOCRM_CONFIG_SMTP_SERVER: ${{ addons.email.host }}
+      ESPOCRM_CONFIG_SMTP_PORT: ${{ addons.email.port }}
+      ESPOCRM_CONFIG_SMTP_AUTH: ${{ if(addons.email.user, 'true', '') }}
+      ESPOCRM_CONFIG_SMTP_SECURITY: ${{ if(addons.email.security == 'tls', 'SSL', if(addons.email.security == 'starttls', 'TLS', '')) }}
+      ESPOCRM_CONFIG_SMTP_USERNAME: ${{ addons.email.user }}
+      ESPOCRM_CONFIG_SMTP_PASSWORD: ${{ addons.email.password }}
+      ESPOCRM_CONFIG_OUTBOUND_EMAIL_FROM_ADDRESS: ${{ addons.email.from }}
+
+  # Runs scheduled jobs (cron). Exits and restarts until the app has finished installing.
+  daemon:
+    image: docker.io/espocrm/espocrm:10.0.10-apache
+    cmd: docker-daemon.sh
+    dependsOn:
+      - espocrm
+    volumes:
+      - name: espocrm-data
+        mountPath: /var/www/html/data
+      - name: espocrm-custom
+        mountPath: /var/www/html/custom
+      - name: espocrm-custom-client
+        mountPath: /var/www/html/client/custom
+
+  # Real-time updates in the browser over WebSocket.
+  websocket:
+    image: docker.io/espocrm/espocrm:10.0.10-apache
+    cmd: docker-websocket.sh
+    public: true
+    port: 8080
+    dependsOn:
+      - espocrm
+    env:
+      # Written to the shared config, so the app and daemon publish events here.
+      ESPOCRM_CONFIG_USE_WEB_SOCKET: "true"
+      ESPOCRM_CONFIG_WEB_SOCKET_URL: wss://${{ services.websocket.host }}
+      ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBSCRIBER_DSN: tcp://*:7777
+      ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBMISSION_DSN: tcp://${{ services.websocket.internalHost }}:7777
+    volumes:
+      - name: espocrm-data
+        mountPath: /var/www/html/data
+      - name: espocrm-custom
+        mountPath: /var/www/html/custom
+      - name: espocrm-custom-client
+        mountPath: /var/www/html/client/custom
+
+done:
+  open: ${{ services.espocrm.url }}
+  message: EspoCRM installs itself on first start, which takes a minute or two. Sign in as admin with the password below.

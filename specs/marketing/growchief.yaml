@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: GrowChief
+  description: Open-source social media outreach automation for LinkedIn and X. Build workflows that send connection requests and follow-ups, driven by an API for n8n, Make or Zapier.
+  icon: https://raw.githubusercontent.com/growchief/growchief/main/apps/frontend/public/logo.svg
+  docs: https://docs.growchief.com
+
+server:
+  minimum: medium
+  recommended: large
+
+addons:
+  email:
+    use: resend
+    optional: true
+    reason: Sends account activation, password reset and notification emails.
+  llm:
+    use: llm
+    label: OpenAI
+    providers: [openai]
+    optional: true
+    reason: Powers the AI steps in workflows.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  growchief:
+    image: ghcr.io/growchief/growchief:v0.3.0
+    public: true
+    port: 5000
+    healthcheck: /api/
+    dependsOn: [temporal]
+    volumes:
+      - name: growchief-config
+        mountPath: /config
+      - name: growchief-uploads
+        mountPath: /uploads
+    env:
+      PORT: 3000
+      FRONTEND_URL: ${{ services.growchief.url }}
+      DATABASE_URL: ${{ databases.db.url }}
+      AUTH_SECRET: ${{ secret(64) }}
+      TEMPORAL_ADDRESS: ${{ services.temporal.internalHost }}:7233
+      STORAGE_PROVIDER: local
+      UPLOAD_DIRECTORY: /uploads
+      NEXT_PUBLIC_UPLOAD_DIRECTORY: /uploads
+      EMAIL_PROVIDER: ${{ if(addons.email.enabled, 'resend', '') }}
+      RESEND_API_KEY: ${{ addons.email.apiKey }}
+      EMAIL_FROM_ADDRESS: ${{ addons.email.from }}
+      EMAIL_FROM_NAME: ${{ if(addons.email.enabled, 'GrowChief', '') }}
+      OPENAI_KEY: ${{ addons.llm.apiKey }}
+
+  temporal:
+    image: docker.io/temporalio/temporal:1.9.1
+    cmd: server start-dev --ip 0.0.0.0 --headless --db-filename /home/temporal/temporal.db
+    volumes:
+      - name: temporal-data
+        mountPath: /home/temporal
+
+done:
+  open: ${{ services.growchief.url }}
+  message: Open GrowChief and register your account. Anyone with the URL can sign up; set DISABLE_REGISTRATION=true on the growchief service once your team has joined.

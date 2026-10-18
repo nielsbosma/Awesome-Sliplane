@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: BentoPDF
+  description: Privacy-first PDF toolkit to merge, split, compress, convert, sign and edit PDFs. Everything runs in the browser, so files never leave the visitor's device.
+  icon: https://raw.githubusercontent.com/alam00000/bentopdf/main/public/images/favicon-no-bg.svg
+  docs: https://github.com/alam00000/bentopdf#readme
+
+server:
+  minimum: starter
+  recommended: base
+
+services:
+  bentopdf:
+    # Self-hosted build: every tool, without the bentopdf.com marketing pages.
+    image: ghcr.io/alam00000/bentopdf-simple:2.8.8
+    public: true
+    port: 8080
+    healthcheck: /
+
+done:
+  open: ${{ services.bentopdf.url }}
+  message: Open BentoPDF and pick a tool. There are no accounts; PDFs are processed in your browser.

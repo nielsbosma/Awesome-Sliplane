@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Infisical
+  description: Open source secrets management. Sync secrets and API keys across teams, environments and infrastructure, with versioning, access controls, audit logs and a PKI and SSH certificate manager.
+  icon: https://raw.githubusercontent.com/Infisical/infisical/main/frontend/public/images/gradientLogo.svg
+  docs: https://infisical.com/docs/self-hosting/deployment-options/docker-compose
+
+server:
+  minimum: medium
+  recommended: large
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Infisical send invites, email verification and password resets.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  cache:
+    engine: redis
+
+services:
+  infisical:
+    image: docker.io/infisical/infisical:v0.166.8
+    public: true
+    port: 8080
+    healthcheck: /api/status
+    env:
+      NODE_ENV: production
+      SITE_URL: ${{ services.infisical.url }}
+      # 16 random bytes as 32 hex characters, like `openssl rand -hex 16`. Never change it after the first start.
+      ENCRYPTION_KEY: ${{ hex(32) }}
+      AUTH_SECRET: ${{ secret(48) }}
+      DB_CONNECTION_URI: ${{ databases.db.url }}
+      REDIS_URL: ${{ databases.cache.url }}
+      TELEMETRY_ENABLED: false
+      SMTP_HOST: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_USERNAME: ${{ addons.email.user }}
+      SMTP_PASSWORD: ${{ addons.email.password }}
+      SMTP_FROM_ADDRESS: ${{ addons.email.from }}
+      SMTP_FROM_NAME: ${{ if(addons.email.enabled, 'Infisical', '') }}
+      SMTP_IGNORE_TLS: ${{ if(addons.email.security == 'none', 'true', '') }}
+
+done:
+  open: ${{ services.infisical.url }}/admin/signup
+  message: Create the first account; it becomes the instance admin. After that, sign-ups are invite-only by default.

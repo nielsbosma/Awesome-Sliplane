@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Lowcoder
+  description: Open-source low-code platform for building internal tools, web apps, meeting apps and modules with a drag-and-drop editor.
+  icon: https://raw.githubusercontent.com/lowcoder-org/lowcoder/main/client/packages/lowcoder/src/assets/images/logo.svg
+  docs: https://docs.lowcoder.cloud/lowcoder-documentation/setup-and-run/self-hosting
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: Sign in with this email as the super admin.
+    required: true
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: When off, only the admin and invited users can sign in.
+    default: false
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Lowcoder send invites and password reset emails.
+
+services:
+  lowcoder:
+    image: docker.io/lowcoderorg/lowcoder-ce:3.0.0
+    public: true
+    port: 3000
+    healthcheck: /api/status/health
+    volumes:
+      - name: lowcoder-stacks
+        mountPath: /lowcoder-stacks
+      - name: lowcoder-assets
+        mountPath: /lowcoder/assets
+    env:
+      LOWCODER_PUBLIC_URL: ${{ services.lowcoder.url }}/
+      LOWCODER_PREVIEW_FRONTEND_URL: ${{ services.lowcoder.url }}
+      LOWCODER_DB_ENCRYPTION_PASSWORD: ${{ secret(32) }}
+      LOWCODER_DB_ENCRYPTION_SALT: ${{ secret(32) }}
+      LOWCODER_API_KEY_SECRET: ${{ hex(64) }}
+      LOWCODER_NODE_SERVICE_SECRET: ${{ hex(64) }}
+      LOWCODER_NODE_SERVICE_SECRET_SALT: ${{ secret(32) }}
+      LOWCODER_SUPERUSER_USERNAME: ${{ inputs.admin_email }}
+      LOWCODER_SUPERUSER_PASSWORD: ${{ secrets.admin_password }}
+      LOWCODER_EMAIL_SIGNUP_ENABLED: ${{ inputs.signups }}
+      LOWCODER_AGORA_TOKEN_SERVICE_ENABLED: false
+      LOWCODER_ADMIN_SMTP_HOST: ${{ addons.email.host }}
+      LOWCODER_ADMIN_SMTP_PORT: ${{ addons.email.port }}
+      LOWCODER_ADMIN_SMTP_USERNAME: ${{ addons.email.user }}
+      LOWCODER_ADMIN_SMTP_PASSWORD: ${{ addons.email.password }}
+      LOWCODER_ADMIN_SMTP_SSL_ENABLED: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      LOWCODER_ADMIN_SMTP_STARTTLS_ENABLED: ${{ if(addons.email.enabled, if(addons.email.security == 'starttls', 'true', 'false'), '') }}
+      LOWCODER_ADMIN_SMTP_STARTTLS_REQUIRED: ${{ if(addons.email.enabled, if(addons.email.security == 'starttls', 'true', 'false'), '') }}
+      LOWCODER_EMAIL_NOTIFICATIONS_SENDER: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.lowcoder.url }}
+  message: Lowcoder needs a few minutes to start the first time. Sign in with ${{ inputs.admin_email }} and the admin password below.

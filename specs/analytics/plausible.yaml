@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Plausible Analytics
+  description: Simple, privacy-friendly web analytics without cookies. Community Edition backed by Postgres and ClickHouse.
+  icon: https://raw.githubusercontent.com/plausible/docs/master/static/img/plausible_logo.png
+  docs: https://github.com/plausible/community-edition
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends invites, password resets and email reports. Without it, Plausible tries to deliver mail directly, which often lands in spam.
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+
+services:
+  events-db:
+    image: docker.io/clickhouse/clickhouse-server:24.12-alpine
+    volumes:
+      - name: plausible-event-data
+        mountPath: /var/lib/clickhouse
+    env:
+      CLICKHOUSE_SKIP_USER_SETUP: 1
+      CLICKHOUSE_DB: plausible_events_db
+
+  plausible:
+    image: ghcr.io/plausible/community-edition:v3.2.1
+    public: true
+    port: 8000
+    healthcheck: /api/system/health/ready
+    cmd: sh -c "/entrypoint.sh db migrate && /entrypoint.sh run"
+    dependsOn: [events-db]
+    volumes:
+      - name: plausible-data
+        mountPath: /var/lib/plausible
+    env:
+      TMPDIR: /var/lib/plausible/tmp
+      BASE_URL: ${{ services.plausible.url }}
+      SECRET_KEY_BASE: ${{ secret(64) }}
+      HTTP_PORT: 8000
+      DATABASE_URL: ${{ databases.db.url }}
+      CLICKHOUSE_DATABASE_URL: http://${{ services.events-db.internalHost }}:8123/plausible_events_db
+      MAILER_EMAIL: ${{ addons.email.from }}
+      SMTP_HOST_ADDR: ${{ addons.email.host }}
+      SMTP_HOST_PORT: ${{ addons.email.port }}
+      SMTP_USER_NAME: ${{ addons.email.user }}
+      SMTP_USER_PWD: ${{ addons.email.password }}
+      SMTP_HOST_SSL_ENABLED: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+
+done:
+  open: ${{ services.plausible.url }}/register
+  message: Create your account, then add a site and paste the tracking snippet into it. Registration closes to invites after the first account.

@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: NextChat
+  description: A light, fast ChatGPT-style web client for OpenAI, Anthropic and other models, protected by an access password. Chats are stored in the browser.
+  icon: https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat/main/public/android-chrome-192x192.png
+  docs: https://github.com/ChatGPTNextWeb/NextChat#environment-variables
+
+server:
+  minimum: starter
+  recommended: base
+
+secrets:
+  access_code:
+    format: alphanumeric
+    length: 20
+    label: Access Password
+    show: true
+
+addons:
+  llm:
+    use: llm
+    providers: [anthropic, openai, openrouter, berget]
+    default: anthropic
+
+services:
+  web:
+    image: docker.io/yidadaa/chatgpt-next-web:v2.16.1
+    public: true
+    port: 3000
+    env:
+      CODE: ${{ secrets.access_code }}
+      HIDE_USER_API_KEY: 1
+      ANTHROPIC_API_KEY: ${{ if(addons.llm.provider == 'anthropic', addons.llm.apiKey, '') }}
+      OPENAI_API_KEY: ${{ if(addons.llm.provider == 'anthropic', '', addons.llm.apiKey) }}
+      BASE_URL: ${{ if(addons.llm.provider == 'openrouter', 'https://openrouter.ai/api', if(addons.llm.provider == 'berget', 'https://api.berget.ai', '')) }}
+      CUSTOM_MODELS: -all,+${{ addons.llm.model }}@${{ if(addons.llm.provider == 'anthropic', 'Anthropic', 'OpenAI') }}
+      DEFAULT_MODEL: ${{ addons.llm.model }}@${{ if(addons.llm.provider == 'anthropic', 'Anthropic', 'OpenAI') }}
+
+done:
+  open: ${{ services.web.url }}
+  message: Open NextChat, go to Settings and enter the Access Password below. Chat history stays in each browser.

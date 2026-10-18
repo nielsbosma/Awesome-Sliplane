@@ -1,0 +1,239 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# AppFlowy Cloud's compose fronts every service with nginx and a mounted config
+# file. The desktop and mobile apps take a single server URL and expect /gotrue,
+# /api and /ws on it, so the services can't be exposed one by one. Instead the
+# public "proxy" service runs the official Caddy image and writes its Caddyfile
+# from the CADDYFILE env var at start, routing the same paths as upstream
+# nginx/nginx.conf to the internal services. The proxy needs the other services'
+# internal hosts while they need the public URL, a loop the deployer can't order,
+# so the public address comes from a required custom domain instead.
+x-upstream: https://github.com/AppFlowy-IO/AppFlowy-Cloud/blob/main/docker-compose.yml
+
+app:
+  name: AppFlowy
+  description: Open source Notion alternative for docs, wikis, databases, kanban boards and real-time collaboration. This deploys AppFlowy Cloud, the server the AppFlowy desktop, mobile and web apps sync with.
+  icon: https://raw.githubusercontent.com/AppFlowy-IO/AppFlowy/main/frontend/resources/flowy_icons/40x/app_logo.svg
+  docs: https://appflowy.com/docs/Self-hosting-AppFlowy
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: Signs in to the admin console at /console. Created on first start.
+    required: true
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: When off, only users you create or invite in the admin console can sign in.
+    default: true
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+  jwt_secret:
+    format: alphanumeric
+    length: 48
+
+addons:
+  domain:
+    use: domain
+    service: proxy
+    label: AppFlowy Domain
+    reason: The AppFlowy apps connect to this address, for example appflowy.example.com. The server's URLs are built from it, so pick one you will keep.
+  email:
+    use: smtp
+    optional: true
+    reason: Lets AppFlowy send sign-in links, email confirmations and workspace invites. Without it, new accounts are confirmed automatically.
+
+databases:
+  db:
+    engine: postgres
+    version: 16
+    extensions: [vector]
+  cache:
+    engine: redis
+
+buckets:
+  files: {}
+
+services:
+  proxy:
+    image: docker.io/library/caddy:2.11.4-alpine
+    public: true
+    port: 80
+    healthcheck: /api/health
+    cmd: sh -c "printenv CADDYFILE > /etc/caddy/Caddyfile && exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"
+    dependsOn: [cloud, gotrue, web, admin]
+    env:
+      CADDYFILE: |
+        {
+          admin off
+          auto_https off
+          servers {
+            trusted_proxies static private_ranges
+          }
+        }
+        :80 {
+          handle_path /gotrue/* {
+            reverse_proxy ${{ services.gotrue.internalHost }}:9999
+          }
+          handle /ws* {
+            reverse_proxy ${{ services.cloud.internalHost }}:8000
+          }
+          handle /api* {
+            reverse_proxy ${{ services.cloud.internalHost }}:8000 {
+              flush_interval -1
+            }
+          }
+          handle /ai/* {
+            reverse_proxy ${{ services.cloud.internalHost }}:8000
+          }
+          handle /console* {
+            reverse_proxy ${{ services.admin.internalHost }}:3000
+          }
+          handle {
+            reverse_proxy ${{ services.web.internalHost }}:80
+          }
+        }
+
+  gotrue:
+    image: docker.io/appflowyinc/gotrue:0.18.11
+    port: 9999
+    healthcheck: /health
+    env:
+      GOTRUE_ADMIN_EMAIL: ${{ inputs.admin_email }}
+      GOTRUE_ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      GOTRUE_DISABLE_SIGNUP: ${{ if(inputs.signups, 'false', 'true') }}
+      GOTRUE_SITE_URL: appflowy-flutter://
+      GOTRUE_URI_ALLOW_LIST: "**"
+      GOTRUE_JWT_SECRET: ${{ secrets.jwt_secret }}
+      GOTRUE_JWT_EXP: 604800
+      GOTRUE_JWT_ADMIN_GROUP_NAME: supabase_admin
+      GOTRUE_DB_DRIVER: postgres
+      API_EXTERNAL_URL: https://${{ addons.domain.hostname }}/gotrue
+      DATABASE_URL: postgres://${{ databases.db.user }}:${{ databases.db.password }}@${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}?search_path=auth
+      GOTRUE_MAILER_AUTOCONFIRM: ${{ if(addons.email.enabled, 'false', 'true') }}
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /gotrue/verify
+      GOTRUE_MAILER_URLPATHS_INVITE: /gotrue/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /gotrue/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /gotrue/verify
+      GOTRUE_RATE_LIMIT_EMAIL_SENT: 100
+      GOTRUE_SMTP_HOST: ${{ addons.email.host }}
+      GOTRUE_SMTP_PORT: ${{ addons.email.port }}
+      GOTRUE_SMTP_USER: ${{ addons.email.user }}
+      GOTRUE_SMTP_PASS: ${{ addons.email.password }}
+      GOTRUE_SMTP_ADMIN_EMAIL: ${{ addons.email.from }}
+
+  cloud:
+    image: docker.io/appflowyinc/appflowy_cloud:0.19.8
+    port: 8000
+    healthcheck: /api/health
+    dependsOn: [gotrue, search]
+    env:
+      RUST_LOG: info
+      APPFLOWY_ENVIRONMENT: production
+      APPFLOWY_DATABASE_URL: ${{ databases.db.url }}
+      APPFLOWY_DATABASE_MAX_CONNECTIONS: 40
+      APPFLOWY_REDIS_URI: ${{ databases.cache.url }}
+      APPFLOWY_GOTRUE_JWT_SECRET: ${{ secrets.jwt_secret }}
+      APPFLOWY_GOTRUE_BASE_URL: http://${{ services.gotrue.internalHost }}:9999
+      APPFLOWY_ACCESS_CONTROL: true
+      APPFLOWY_BASE_URL: https://${{ addons.domain.hostname }}
+      APPFLOWY_WEB_URL: https://${{ addons.domain.hostname }}
+      APPFLOWY_S3_CREATE_BUCKET: false
+      APPFLOWY_S3_USE_MINIO: true
+      APPFLOWY_S3_MINIO_URL: ${{ buckets.files.endpoint }}
+      APPFLOWY_S3_ACCESS_KEY: ${{ buckets.files.accessKeyId }}
+      APPFLOWY_S3_SECRET_KEY: ${{ buckets.files.secretAccessKey }}
+      APPFLOWY_S3_BUCKET: ${{ buckets.files.bucket }}
+      APPFLOWY_S3_REGION: ${{ buckets.files.region }}
+      APPFLOWY_SEARCH_SERVICE_URL: http://${{ services.search.internalHost }}:4002
+      AI_ENABLED: false
+      APPFLOWY_MAILER_SMTP_HOST: ${{ addons.email.host }}
+      APPFLOWY_MAILER_SMTP_PORT: ${{ addons.email.port }}
+      APPFLOWY_MAILER_SMTP_USERNAME: ${{ addons.email.user }}
+      APPFLOWY_MAILER_SMTP_EMAIL: ${{ addons.email.from }}
+      APPFLOWY_MAILER_SMTP_PASSWORD: ${{ addons.email.password }}
+      APPFLOWY_MAILER_SMTP_TLS_KIND: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'wrapper', if(addons.email.security == 'starttls', 'required', 'none')), '') }}
+
+  worker:
+    image: docker.io/appflowyinc/appflowy_worker:0.19.8
+    dependsOn: [cloud]
+    env:
+      RUST_LOG: info
+      APPFLOWY_ENVIRONMENT: production
+      APPFLOWY_WORKER_ENVIRONMENT: production
+      APPFLOWY_WORKER_REDIS_URL: ${{ databases.cache.url }}
+      APPFLOWY_WORKER_DATABASE_URL: ${{ databases.db.url }}
+      APPFLOWY_WORKER_DATABASE_NAME: ${{ databases.db.database }}
+      APPFLOWY_WORKER_IMPORT_TICK_INTERVAL: 30
+      APPFLOWY_S3_USE_MINIO: true
+      APPFLOWY_S3_MINIO_URL: ${{ buckets.files.endpoint }}
+      APPFLOWY_S3_ACCESS_KEY: ${{ buckets.files.accessKeyId }}
+      APPFLOWY_S3_SECRET_KEY: ${{ buckets.files.secretAccessKey }}
+      APPFLOWY_S3_BUCKET: ${{ buckets.files.bucket }}
+      APPFLOWY_S3_REGION: ${{ buckets.files.region }}
+      APPFLOWY_MAILER_SMTP_HOST: ${{ addons.email.host }}
+      APPFLOWY_MAILER_SMTP_PORT: ${{ addons.email.port }}
+      APPFLOWY_MAILER_SMTP_USERNAME: ${{ addons.email.user }}
+      APPFLOWY_MAILER_SMTP_EMAIL: ${{ addons.email.from }}
+      APPFLOWY_MAILER_SMTP_PASSWORD: ${{ addons.email.password }}
+      APPFLOWY_MAILER_SMTP_TLS_KIND: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'wrapper', if(addons.email.security == 'starttls', 'required', 'none')), '') }}
+
+  search:
+    image: docker.io/appflowyinc/appflowy_search:0.19.8
+    port: 4002
+    healthcheck: /health
+    volumes:
+      - name: appflowy-keyword-index
+        mountPath: /var/lib/appflowy/keyword_index
+    env:
+      RUST_LOG: info
+      APPFLOWY_SEARCH_HOST: "[::]"
+      APPFLOWY_SEARCH_PORT: 4002
+      APPFLOWY_SEARCH_DATABASE_URL: ${{ databases.db.url }}
+      APPFLOWY_SEARCH_REDIS_URL: ${{ databases.cache.url }}
+      APPFLOWY_S3_USE_MINIO: true
+      APPFLOWY_S3_MINIO_URL: ${{ buckets.files.endpoint }}
+      APPFLOWY_S3_ACCESS_KEY: ${{ buckets.files.accessKeyId }}
+      APPFLOWY_S3_SECRET_KEY: ${{ buckets.files.secretAccessKey }}
+      APPFLOWY_S3_BUCKET: ${{ buckets.files.bucket }}
+      APPFLOWY_S3_REGION: ${{ buckets.files.region }}
+      APPFLOWY_BACKGROUND_INDEXER_ENABLED: true
+      APPFLOWY_INDEXER_DATABASE_ENABLED: false
+      APPFLOWY_KEYWORD_SEARCH_ENABLED: true
+      APPFLOWY_KEYWORD_WORKER_ENABLED: true
+      APPFLOWY_KEYWORD_INDEX_MAP_SIZE_BYTES: 2147483648
+      APPFLOWY_KEYWORD_INDEX_DIR: /var/lib/appflowy/keyword_index
+      APPFLOWY_GOTRUE_JWT_SECRET: ${{ secrets.jwt_secret }}
+
+  admin:
+    image: docker.io/appflowyinc/admin_frontend:0.19.3
+    port: 3000
+    dependsOn: [gotrue, cloud]
+    env:
+      APPFLOWY_GOTRUE_BASE_URL: http://${{ services.gotrue.internalHost }}:9999
+      APPFLOWY_BASE_URL: http://${{ services.cloud.internalHost }}:8000
+
+  web:
+    image: docker.io/appflowyinc/appflowy_web:0.19.13
+    port: 80
+    dependsOn: [cloud]
+    env:
+      APPFLOWY_BASE_URL: https://${{ addons.domain.hostname }}
+      APPFLOWY_GOTRUE_BASE_URL: https://${{ addons.domain.hostname }}/gotrue
+      APPFLOWY_WS_BASE_URL: wss://${{ addons.domain.hostname }}/ws/v2
+
+done:
+  open: https://${{ addons.domain.hostname }}
+  message: |
+    Add the DNS record shown above, then sign in to the admin console at https://${{ addons.domain.hostname }}/console with ${{ inputs.admin_email }} and the password below. In the AppFlowy desktop or mobile app, choose Self-hosted under Settings > Cloud and enter https://${{ addons.domain.hostname }}.

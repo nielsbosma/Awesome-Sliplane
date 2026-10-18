@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Metabase
+  description: Open source business intelligence. Connect your databases, ask questions without SQL, and share dashboards with your team. Uses Postgres as its application database.
+  icon: https://raw.githubusercontent.com/metabase/metabase/master/resources/frontend_client/app/assets/img/apple-touch-icon.png
+  docs: https://www.metabase.com/docs/latest/installation-and-operation/running-metabase-on-docker
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Metabase send invites, password resets, alerts and dashboard subscriptions.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  metabase:
+    image: docker.io/metabase/metabase:v0.64.2.8
+    public: true
+    port: 3000
+    healthcheck: /api/health
+    env:
+      MB_JETTY_PORT: 3000
+      MB_SITE_URL: ${{ services.metabase.url }}
+      MB_ENCRYPTION_SECRET_KEY: ${{ secret(48) }}
+      MB_DB_TYPE: postgres
+      MB_DB_CONNECTION_URI: jdbc:postgresql://${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}?sslmode=require
+      MB_DB_USER: ${{ databases.db.user }}
+      MB_DB_PASS: ${{ databases.db.password }}
+      JAVA_OPTS: -XX:MaxRAMPercentage=75
+      MB_EMAIL_SMTP_HOST: ${{ addons.email.host }}
+      MB_EMAIL_SMTP_PORT: ${{ addons.email.port }}
+      MB_EMAIL_SMTP_USERNAME: ${{ addons.email.user }}
+      MB_EMAIL_SMTP_PASSWORD: ${{ addons.email.password }}
+      MB_EMAIL_SMTP_SECURITY: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'ssl', if(addons.email.security == 'starttls', 'starttls', 'none')), '') }}
+      MB_EMAIL_FROM_ADDRESS: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.metabase.url }}/setup
+  message: The first start runs database migrations and can take a couple of minutes. Then create the admin account and connect your first data source.

@@ -1,0 +1,161 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# Smallest working setup. Not included from upstream's docker-compose:
+# - Keycloak: it needs a realm export and theme files mounted from the repo, which a prebuilt-image
+#   deploy can't provide. Bring any OpenID Connect provider instead (Keycloak, Auth0, Google, ...).
+# - Self-hosted embedding, SPLADE and reranker servers (GPU), ClickHouse analytics, the search
+#   and chat playgrounds, and the CSV/JSONL worker. Embeddings and chat use the OpenAI API.
+# Upstream stopped publishing images in October 2025, so these are the last builds.
+
+app:
+  name: Trieve
+  description: Search, recommendations and RAG API with hybrid vector and BM25 search, plus a dashboard to manage datasets and API keys.
+  docs: https://github.com/devflowinc/trieve#self-hosting
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  oidc_issuer:
+    type: url
+    label: OIDC Issuer URL
+    help: Your OpenID Connect provider's issuer, for example https://accounts.google.com or https://auth.example.com/realms/trieve.
+    required: true
+    group: Sign-In
+  oidc_auth_url:
+    type: url
+    label: OIDC Authorization URL
+    help: The provider's authorization endpoint, for example https://accounts.google.com/o/oauth2/v2/auth.
+    required: true
+    group: Sign-In
+  oidc_client_id:
+    type: string
+    label: OIDC Client ID
+    required: true
+    group: Sign-In
+  oidc_client_secret:
+    type: secret
+    label: OIDC Client Secret
+    help: Register the redirect URL https://<api host>/api/auth/callback with your provider; the done screen shows the exact URL.
+    required: true
+    group: Sign-In
+  file_uploads:
+    type: boolean
+    label: Enable File Uploads
+    help: Runs Apache Tika and a file worker so PDFs and Office files can be uploaded. Uses about 1 GB more memory.
+    default: false
+
+addons:
+  llm:
+    use: llm
+    providers: [openai, openai-compatible]
+    default: openai
+    reason: Trieve creates embeddings and RAG answers through an OpenAI-compatible API.
+
+secrets:
+  admin_api_key:
+    format: alphanumeric
+    length: 40
+    label: Admin API Key
+    show: true
+  qdrant_key:
+    format: alphanumeric
+    length: 40
+
+databases:
+  db:
+    engine: postgres
+    version: 15
+  cache:
+    engine: redis
+
+buckets:
+  files: {}
+
+services:
+  qdrant:
+    image: docker.io/qdrant/qdrant:v1.12.2
+    volumes:
+      - name: trieve-qdrant-data
+        mountPath: /qdrant/storage
+    env:
+      QDRANT__SERVICE__API_KEY: ${{ secrets.qdrant_key }}
+
+  tika:
+    when: ${{ inputs.file_uploads }}
+    image: docker.io/apache/tika:2.9.1.0-full
+
+  server:
+    image: docker.io/trieve/server:sha-781db71
+    public: true
+    port: 8090
+    healthcheck: /api/health
+    dependsOn: [qdrant]
+    env:
+      BASE_SERVER_URL: ${{ services.server.url }}
+      DATABASE_URL: ${{ databases.db.url }}
+      REDIS_URL: ${{ databases.cache.url }}
+      REDIS_CONNECTIONS: 30
+      QDRANT_URL: http://${{ services.qdrant.internalHost }}:6334
+      QDRANT_API_KEY: ${{ secrets.qdrant_key }}
+      CREATE_QDRANT_COLLECTIONS: true
+      REPLICATION_FACTOR: 1
+      QDRANT_SHARD_COUNT: 1
+      QUANTIZE_VECTORS: false
+      BM25_ACTIVE: true
+      UNLIMITED: true
+      ADMIN_API_KEY: ${{ secrets.admin_api_key }}
+      SECRET_KEY: ${{ secret(80) }}
+      SALT: ${{ secret(32) }}
+      COOKIE_SECURE: true
+      OIDC_ISSUER_URL: ${{ inputs.oidc_issuer }}
+      OIDC_AUTH_REDIRECT_URL: ${{ inputs.oidc_auth_url }}
+      OIDC_CLIENT_ID: ${{ inputs.oidc_client_id }}
+      OIDC_CLIENT_SECRET: ${{ inputs.oidc_client_secret }}
+      OPENAI_API_KEY: ${{ addons.llm.apiKey }}
+      OPENAI_BASE_URL: ${{ addons.llm.baseUrl ?? 'https://api.openai.com/v1' }}
+      LLM_API_KEY: ${{ addons.llm.apiKey }}
+      S3_ENDPOINT: ${{ buckets.files.endpoint }}
+      S3_BUCKET: ${{ buckets.files.bucket }}
+      S3_ACCESS_KEY: ${{ buckets.files.accessKeyId }}
+      S3_SECRET_KEY: ${{ buckets.files.secretAccessKey }}
+      AWS_REGION: ${{ buckets.files.region }}
+      RUST_LOG: INFO
+
+  ingestion-worker:
+    image: docker.io/trieve/ingest:sha-781db71
+    envFrom: server
+    dependsOn: [server]
+
+  delete-worker:
+    image: docker.io/trieve/delete_worker:sha-781db71
+    envFrom: server
+    dependsOn: [server]
+
+  file-worker:
+    when: ${{ inputs.file_uploads }}
+    image: docker.io/trieve/file_worker:sha-781db71
+    envFrom: server
+    dependsOn: [server, tika]
+    env:
+      TIKA_URL: http://${{ services.tika.internalHost }}:9998
+
+  dashboard:
+    image: docker.io/trieve/dashboard:sha-5aa4aa3
+    public: true
+    port: 80
+    healthcheck: /
+    env:
+      VITE_API_HOST: ${{ services.server.url }}/api
+      VITE_SEARCH_UI_URL: ""
+      VITE_CHAT_UI_URL: ""
+      VITE_BM25_ACTIVE: true
+
+done:
+  open: ${{ services.dashboard.url }}
+  message: |
+    Add ${{ services.server.url }}/api/auth/callback as a redirect URL in your OIDC provider, then sign in to the dashboard.
+    In each new dataset's settings, turn off full-text (SPLADE) search; this setup runs semantic and BM25 search only.
+    The Admin API Key works against ${{ services.server.url }}/api.

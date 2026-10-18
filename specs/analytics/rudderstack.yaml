@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: RudderStack
+  description: Open source customer data platform. Self-hosted data plane that collects events from your apps and routes them to warehouses and tools, configured from a free RudderStack Open Source account.
+  icon: https://raw.githubusercontent.com/rudderlabs/rudder-server/master/resources/logo.png
+  docs: https://www.rudderstack.com/docs/get-started/rudderstack-open-source/data-plane-setup/docker/
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  workspace_token:
+    type: secret
+    label: Workspace Token
+    help: Sign up for RudderStack Open Source at app.rudderstack.com, then generate a token under Settings > Workspace > Security. The data plane reads your sources and destinations with it.
+    required: true
+
+databases:
+  jobsdb:
+    engine: postgres
+    version: 15
+    database: jobsdb
+
+services:
+  transformer:
+    image: docker.io/rudderstack/rudder-transformer:1.160.0
+    port: 9090
+    healthcheck: /health
+
+  rudder:
+    image: docker.io/rudderlabs/rudder-server:1.90.1
+    public: true
+    port: 8080
+    healthcheck: /health
+    dependsOn: [transformer]
+    env:
+      WORKSPACE_TOKEN: ${{ inputs.workspace_token }}
+      CONFIG_BACKEND_URL: https://api.rudderstack.com
+      DEST_TRANSFORM_URL: ${{ services.transformer.internalUrl }}
+      JOBS_DB_HOST: ${{ databases.jobsdb.host }}
+      JOBS_DB_PORT: ${{ databases.jobsdb.port }}
+      JOBS_DB_DB_NAME: ${{ databases.jobsdb.database }}
+      JOBS_DB_USER: ${{ databases.jobsdb.user }}
+      JOBS_DB_PASSWORD: ${{ databases.jobsdb.password }}
+      JOBS_DB_SSL_MODE: require
+      RSERVER_DB_SSL_MODE: require
+      GO_ENV: production
+      LOG_LEVEL: INFO
+      RSERVER_GATEWAY_WEBHOOK_SOURCE_LIST_FOR_PARSING_PARAMS: Shopify
+
+done:
+  open: https://app.rudderstack.com
+  message: |
+    Your data plane URL is ${{ services.rudder.url }}. Add sources and destinations in the RudderStack dashboard, then point your SDKs at this URL with each source's write key.
