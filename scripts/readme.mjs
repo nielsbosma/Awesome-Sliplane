@@ -28,22 +28,23 @@ function appField(yaml, key) {
   return value.replace(/^(["'])(.*)\1$/, "$2");
 }
 
-const sections = [];
+const rows = [];
 for (const category of readdirSync(join(root, "specs")).sort()) {
-  const files = readdirSync(join(root, "specs", category)).filter((f) => f.endsWith(".yaml"));
-  const rows = files
+  const apps = readdirSync(join(root, "specs", category))
+    .filter((f) => f.endsWith(".yaml"))
     .map((file) => {
       const yaml = readFileSync(join(root, "specs", category, file), "utf8");
       const path = `specs/${category}/${file}`;
       return { name: appField(yaml, "name"), description: appField(yaml, "description"), path };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
-  const lines = rows.map(
-    (r) =>
-      `| [${r.name}](${r.path}) | ${r.description} | [![Deploy to Sliplane](${DEPLOYER}/button.svg)](${DEPLOYER}/?repo=${REPO}/${r.path}) |`,
-  );
-  sections.push(`## ${titles[category] ?? category}\n\n| App | What it is | |\n| --- | --- | --- |\n${lines.join("\n")}`);
+  rows.push(`<tr><td colspan="3"><br><b>${titles[category] ?? category}</b></td></tr>`);
+  for (const a of apps)
+    rows.push(
+      `<tr><td width="170"><a href="${a.path}">${a.name}</a></td><td>${a.description}</td><td width="190"><a href="${DEPLOYER}/?repo=${REPO}/${a.path}"><img src="${DEPLOYER}/button.svg" alt="Deploy to Sliplane" width="179" height="36"></a></td></tr>`,
+    );
 }
+const table = `<table>\n<tr><th align="left">App</th><th align="left">What it is</th><th></th></tr>\n${rows.join("\n")}\n</table>`;
 
 const readme = `# Awesome Sliplane
 
@@ -51,7 +52,7 @@ One-click deploy specs for open source apps on [Sliplane](https://sliplane.io), 
 
 Every spec lives in [specs/](specs), grouped by category. Images are pinned to a release; bump the tag to upgrade.
 
-${sections.join("\n\n")}
+${table}
 
 ## Adding an App
 
