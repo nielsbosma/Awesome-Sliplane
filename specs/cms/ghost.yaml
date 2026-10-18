@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Ghost
+  description: Open-source publishing platform for blogs, newsletters and paid memberships, with a fast editor, themes and built-in email.
+  icon: https://raw.githubusercontent.com/TryGhost/Ghost/v6.71.0/apps/admin/src/assets/img/apple-touch-icon.png
+  docs: https://docs.ghost.org/install/docker
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  db_password:
+    format: alphanumeric
+    length: 32
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends staff invites, password resets, sign-in codes for new devices and member sign-up emails. Without it, new-device verification is turned off.
+
+services:
+  mysql:
+    image: docker.io/library/mysql:8.4.11
+    port: 3306
+    protocol: tcp
+    volumes:
+      - name: ghost-mysql
+        mountPath: /var/lib/mysql
+    env:
+      MYSQL_DATABASE: ghost
+      MYSQL_USER: ghost
+      MYSQL_PASSWORD: ${{ secrets.db_password }}
+      MYSQL_RANDOM_ROOT_PASSWORD: 1
+
+  ghost:
+    image: docker.io/library/ghost:6.71.0
+    public: true
+    port: 2368
+    dependsOn: [mysql]
+    volumes:
+      - name: ghost-content
+        mountPath: /var/lib/ghost/content
+    env:
+      NODE_ENV: production
+      url: ${{ services.ghost.url }}
+      database__client: mysql
+      database__connection__host: ${{ services.mysql.internalHost }}
+      database__connection__port: 3306
+      database__connection__user: ghost
+      database__connection__password: ${{ secrets.db_password }}
+      database__connection__database: ghost
+      security__staffDeviceVerification: ${{ if(addons.email.enabled, 'true', 'false') }}
+      mail__transport: ${{ if(addons.email.enabled, 'SMTP', '') }}
+      mail__from: ${{ addons.email.from }}
+      mail__options__host: ${{ addons.email.host }}
+      mail__options__port: ${{ addons.email.port }}
+      mail__options__secure: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      mail__options__auth__user: ${{ addons.email.user }}
+      mail__options__auth__pass: ${{ addons.email.password }}
+
+done:
+  open: ${{ services.ghost.url }}/ghost/
+  message: Ghost sets up its database on the first start, which takes a minute. Then open the admin and create your site and owner account. Newsletters to members use Mailgun, which you can connect under Settings > Email newsletter.

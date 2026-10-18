@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Activepieces
+  description: Open source automation with a no-code flow builder, hundreds of integrations, AI agents and MCP servers. An alternative to Zapier, backed by Postgres and Redis.
+  icon: https://raw.githubusercontent.com/activepieces/activepieces/0.92.3/packages/web/public/logo.svg
+  docs: https://www.activepieces.com/docs/install/options/docker-compose
+
+server:
+  minimum: base
+  recommended: medium
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+services:
+  activepieces:
+    image: ghcr.io/activepieces/activepieces:0.92.3
+    public: true
+    port: 80
+    healthcheck: /api/v1/health
+    volumes:
+      - name: activepieces-cache
+        mountPath: /usr/src/app/cache
+    env:
+      AP_CONTAINER_TYPE: WORKER_AND_APP
+      AP_ENVIRONMENT: prod
+      AP_FRONTEND_URL: ${{ services.activepieces.url }}
+      AP_ENGINE_EXECUTABLE_PATH: dist/packages/engine/main.js
+      AP_ENCRYPTION_KEY: ${{ hex(32) }}
+      AP_JWT_SECRET: ${{ hex(64) }}
+      AP_API_KEY: ${{ hex(128) }}
+      AP_EXECUTION_MODE: UNSANDBOXED
+      AP_POSTGRES_HOST: ${{ databases.db.host }}
+      AP_POSTGRES_PORT: ${{ databases.db.port }}
+      AP_POSTGRES_DATABASE: ${{ databases.db.database }}
+      AP_POSTGRES_USERNAME: ${{ databases.db.user }}
+      AP_POSTGRES_PASSWORD: ${{ databases.db.password }}
+      AP_REDIS_HOST: ${{ databases.redis.host }}
+      AP_REDIS_PORT: ${{ databases.redis.port }}
+      AP_WEBHOOK_TIMEOUT_SECONDS: 30
+      AP_TRIGGER_DEFAULT_POLL_INTERVAL: 5
+      AP_FLOW_TIMEOUT_SECONDS: 600
+      AP_TELEMETRY_ENABLED: false
+      AP_TEMPLATES_SOURCE_URL: https://cloud.activepieces.com/api/v1/flow-templates
+
+done:
+  open: ${{ services.activepieces.url }}
+  message: Create your account. The first account becomes the platform admin. The first start runs migrations and can take a minute or two.

@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Redash
+  description: Connect to your databases and APIs, query them with SQL, and build visualizations, dashboards and alerts to share with your team.
+  icon: https://raw.githubusercontent.com/getredash/redash/master/client/app/assets/images/favicon-96x96.png
+  docs: https://redash.io/help/open-source/setup/
+
+server:
+  minimum: medium
+  recommended: large
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends user invites, password resets and query alerts.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+services:
+  server:
+    image: docker.io/redash/redash:26.9.0
+    public: true
+    port: 5000
+    healthcheck: /ping
+    cmd: sh -c "/app/manage.py database create_tables && /app/manage.py db upgrade && exec /app/bin/docker-entrypoint server"
+    env:
+      REDASH_DATABASE_URL: postgresql://${{ databases.db.user }}:${{ databases.db.password }}@${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}
+      REDASH_REDIS_URL: ${{ databases.redis.url }}/0
+      REDASH_COOKIE_SECRET: ${{ secret(48) }}
+      REDASH_SECRET_KEY: ${{ secret(48) }}
+      REDASH_HOST: ${{ services.server.url }}
+      REDASH_COOKIES_SECURE: true
+      REDASH_WEB_WORKERS: 2
+      REDASH_MAIL_SERVER: ${{ addons.email.host }}
+      REDASH_MAIL_PORT: ${{ addons.email.port }}
+      REDASH_MAIL_USE_TLS: ${{ if(addons.email.enabled, if(addons.email.security == 'starttls', 'true', 'false'), '') }}
+      REDASH_MAIL_USE_SSL: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      REDASH_MAIL_USERNAME: ${{ addons.email.user }}
+      REDASH_MAIL_PASSWORD: ${{ addons.email.password }}
+      REDASH_MAIL_DEFAULT_SENDER: ${{ addons.email.from }}
+
+  worker:
+    image: docker.io/redash/redash:26.9.0
+    cmd: worker
+    envFrom: server
+    env:
+      WORKERS_COUNT: 2
+
+  scheduler:
+    image: docker.io/redash/redash:26.9.0
+    cmd: scheduler
+    envFrom: server
+
+done:
+  open: ${{ services.server.url }}/setup
+  message: Create the admin account and name your organization, then add your first data source.

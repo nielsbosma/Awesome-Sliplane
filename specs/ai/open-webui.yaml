@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Open WebUI
+  description: Self-hosted AI chat interface for OpenAI-compatible and Anthropic models, with multiple users, document chat (RAG), web search, tools and a model workspace.
+  icon: https://raw.githubusercontent.com/open-webui/open-webui/main/static/static/apple-touch-icon.png
+  docs: https://docs.openwebui.com/reference/env-configuration
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: New accounts wait for an admin to approve them. The first account becomes the admin either way.
+    default: false
+
+addons:
+  llm:
+    use: llm
+    optional: true
+    providers: [anthropic, openai, openrouter, opper, berget, openai-compatible]
+    default: anthropic
+    reason: Adds a model connection on first start. You can also add or change connections later in the admin settings.
+
+services:
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:v0.12.3
+    public: true
+    port: 8080
+    healthcheck: /health
+    volumes:
+      - name: openwebui-data
+        mountPath: /app/backend/data
+    env:
+      WEBUI_URL: ${{ services.openwebui.url }}
+      WEBUI_SECRET_KEY: ${{ secret(48) }}
+      ENABLE_SIGNUP: ${{ inputs.signups }}
+      ENABLE_OLLAMA_API: false
+      OPENAI_API_BASE_URL: ${{ addons.llm.baseUrl }}
+      OPENAI_API_KEY: ${{ addons.llm.apiKey }}
+      DEFAULT_MODELS: ${{ addons.llm.model }}
+
+done:
+  open: ${{ services.openwebui.url }}/auth
+  message: Create your account. The first account becomes the admin. The first start downloads the embedding model and can take a few minutes.

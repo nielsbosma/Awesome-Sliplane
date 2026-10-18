@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# The frontend's nginx proxies to the backend and exporter by their internal hosts, while
+# both of those need the public URL. The deployer can't order that loop, so the public
+# address comes from a required custom domain instead. The exporter renders through that
+# public URL (PENPOT_INTERNAL_URI falls back to PENPOT_PUBLIC_URI).
+x-upstream: https://github.com/penpot/penpot/blob/2.18.3/docker/images/docker-compose.yaml
+
+app:
+  name: Penpot
+  description: Open-source design and prototyping platform for teams, an alternative to Figma, built on open standards like SVG, CSS and HTML.
+  icon: https://raw.githubusercontent.com/penpot/penpot/develop/frontend/resources/images/favicon.png
+  docs: https://help.penpot.app/technical-guide/getting-started/docker/
+
+server:
+  minimum: medium
+  recommended: large
+
+secrets:
+  secret_key:
+    format: alphanumeric
+    length: 64
+
+addons:
+  domain:
+    use: domain
+    service: frontend
+    label: Penpot Domain
+    reason: Penpot is served on this address, for example design.example.com. Its links and session cookies are built from it, so pick one you will keep.
+  email:
+    use: smtp
+    optional: true
+    reason: Sends account verification, password reset and team invitation emails. Without it, new accounts skip email verification.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+volumes:
+  penpot-assets:
+    description: Uploaded images, fonts and other design assets
+
+services:
+  frontend:
+    image: docker.io/penpotapp/frontend:2.18.3
+    public: true
+    port: 8080
+    healthcheck: /
+    dependsOn: [backend, exporter]
+    volumes:
+      - name: penpot-assets
+        mountPath: /opt/data/assets
+    env:
+      PENPOT_FLAGS: enable-registration enable-login-with-password ${{ if(addons.email.enabled, 'enable-smtp', 'disable-email-verification') }}
+      PENPOT_PUBLIC_URI: https://${{ addons.domain.hostname }}
+      PENPOT_BACKEND_URI: http://${{ services.backend.internalHost }}:6060
+      PENPOT_EXPORTER_URI: http://${{ services.exporter.internalHost }}:6061
+
+  backend:
+    image: docker.io/penpotapp/backend:2.18.3
+    port: 6060
+    volumes:
+      - name: penpot-assets
+        mountPath: /opt/data/assets
+    env:
+      PENPOT_FLAGS: enable-registration enable-login-with-password ${{ if(addons.email.enabled, 'enable-smtp', 'disable-email-verification') }}
+      PENPOT_PUBLIC_URI: https://${{ addons.domain.hostname }}
+      PENPOT_SECRET_KEY: ${{ secrets.secret_key }}
+      PENPOT_DATABASE_URI: postgresql://${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}
+      PENPOT_DATABASE_USERNAME: ${{ databases.db.user }}
+      PENPOT_DATABASE_PASSWORD: ${{ databases.db.password }}
+      PENPOT_REDIS_URI: ${{ databases.redis.url }}/0
+      PENPOT_OBJECTS_STORAGE_BACKEND: fs
+      PENPOT_OBJECTS_STORAGE_FS_DIRECTORY: /opt/data/assets
+      PENPOT_TELEMETRY_ENABLED: false
+      PENPOT_SMTP_DEFAULT_FROM: ${{ addons.email.from }}
+      PENPOT_SMTP_DEFAULT_REPLY_TO: ${{ addons.email.from }}
+      PENPOT_SMTP_HOST: ${{ addons.email.host }}
+      PENPOT_SMTP_PORT: ${{ addons.email.port }}
+      PENPOT_SMTP_USERNAME: ${{ addons.email.user }}
+      PENPOT_SMTP_PASSWORD: ${{ addons.email.password }}
+      PENPOT_SMTP_TLS: ${{ if(addons.email.enabled, if(addons.email.security == 'starttls', 'true', 'false'), '') }}
+      PENPOT_SMTP_SSL: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+
+  exporter:
+    image: docker.io/penpotapp/exporter:2.18.3
+    port: 6061
+    env:
+      PENPOT_FLAGS: enable-registration enable-login-with-password
+      PENPOT_PUBLIC_URI: https://${{ addons.domain.hostname }}
+      PENPOT_SECRET_KEY: ${{ secrets.secret_key }}
+      PENPOT_REDIS_URI: ${{ databases.redis.url }}/0
+
+done:
+  open: https://${{ addons.domain.hostname }}/#/auth/register
+  message: Add the DNS record shown above, then create your account. To close public sign-ups afterwards, replace enable-registration with disable-registration in PENPOT_FLAGS on the frontend and backend services.

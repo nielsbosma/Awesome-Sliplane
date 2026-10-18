@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Flowise
+  description: Build AI agents and LLM workflows visually with drag-and-drop nodes, then call them through an API or embed them as a chat widget.
+  icon: https://raw.githubusercontent.com/FlowiseAI/Flowise/main/packages/ui/public/logo192.png
+  docs: https://docs.flowiseai.com/configuration/environment-variables
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Flowise send user invites and password reset emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  flowise:
+    image: docker.io/flowiseai/flowise:3.1.4
+    public: true
+    port: 3000
+    healthcheck: /api/v1/ping
+    volumes:
+      # The image runs as the node user; mounting its home keeps the folder writable.
+      - name: flowise-data
+        mountPath: /home/node
+    env:
+      APP_URL: ${{ services.flowise.url }}
+      DATABASE_TYPE: postgres
+      DATABASE_HOST: ${{ databases.db.host }}
+      DATABASE_PORT: ${{ databases.db.port }}
+      DATABASE_NAME: ${{ databases.db.database }}
+      DATABASE_USER: ${{ databases.db.user }}
+      DATABASE_PASSWORD: ${{ databases.db.password }}
+      FLOWISE_SECRETKEY_OVERWRITE: ${{ secret(32) }}
+      JWT_AUTH_TOKEN_SECRET: ${{ hex(64) }}
+      JWT_REFRESH_TOKEN_SECRET: ${{ hex(64) }}
+      EXPRESS_SESSION_SECRET: ${{ hex(64) }}
+      TOKEN_HASH_SECRET: ${{ hex(64) }}
+      DISABLE_FLOWISE_TELEMETRY: true
+      SMTP_HOST: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_USER: ${{ addons.email.user }}
+      SMTP_PASSWORD: ${{ addons.email.password }}
+      SMTP_SECURE: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      SENDER_EMAIL: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.flowise.url }}
+  message: Create the admin account on the setup screen. Then add credentials for your model provider under Credentials and build your first flow.

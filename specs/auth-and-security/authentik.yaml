@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: authentik
+  description: Open source identity provider with SSO over OAuth2/OIDC, SAML, LDAP and proxy authentication, flows, MFA, passkeys and user management. Runs a server and a background worker on Postgres.
+  icon: https://raw.githubusercontent.com/goauthentik/authentik/version/2025.2.0/web/icons/icon.svg
+  docs: https://docs.goauthentik.io/install-config/install/docker-compose/
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: Email address of the default akadmin user.
+    required: true
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 24
+    label: Admin Password
+    show: true
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends password recovery, email verification and notification emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+volumes:
+  authentik-data:
+    description: Uploaded media such as application icons and flow backgrounds
+
+services:
+  server:
+    image: ghcr.io/goauthentik/server:2026.8.4
+    public: true
+    port: 9000
+    healthcheck: /-/health/live/
+    cmd: server
+    volumes:
+      - name: authentik-data
+        mountPath: /data
+    env:
+      AUTHENTIK_SECRET_KEY: ${{ secret(64) }}
+      AUTHENTIK_POSTGRESQL__HOST: ${{ databases.db.host }}
+      AUTHENTIK_POSTGRESQL__PORT: ${{ databases.db.port }}
+      AUTHENTIK_POSTGRESQL__NAME: ${{ databases.db.database }}
+      AUTHENTIK_POSTGRESQL__USER: ${{ databases.db.user }}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${{ databases.db.password }}
+      AUTHENTIK_POSTGRESQL__SSLMODE: prefer
+      AUTHENTIK_ERROR_REPORTING__ENABLED: false
+      # Read by the worker on first start only.
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${{ inputs.admin_email }}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${{ secrets.admin_password }}
+      AUTHENTIK_EMAIL__HOST: ${{ addons.email.host }}
+      AUTHENTIK_EMAIL__PORT: ${{ addons.email.port }}
+      AUTHENTIK_EMAIL__USERNAME: ${{ addons.email.user }}
+      AUTHENTIK_EMAIL__PASSWORD: ${{ addons.email.password }}
+      AUTHENTIK_EMAIL__USE_TLS: ${{ if(addons.email.enabled, if(addons.email.security == 'starttls', 'true', 'false'), '') }}
+      AUTHENTIK_EMAIL__USE_SSL: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      AUTHENTIK_EMAIL__FROM: ${{ addons.email.from }}
+
+  worker:
+    image: ghcr.io/goauthentik/server:2026.8.4
+    cmd: worker
+    envFrom: server
+    volumes:
+      - name: authentik-data
+        mountPath: /data
+
+done:
+  open: ${{ services.server.url }}
+  message: The first start runs database migrations and can take a few minutes. Then sign in as akadmin (or ${{ inputs.admin_email }}) with the password below.

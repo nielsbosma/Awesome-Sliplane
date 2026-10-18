@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Keycloak
+  description: Open source identity and access management with single sign-on over OpenID Connect and SAML, social login, user federation, MFA and fine-grained authorization.
+  icon: https://raw.githubusercontent.com/keycloak/keycloak-misc/main/logo/icon.svg
+  docs: https://www.keycloak.org/server/containers
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 24
+    label: Temporary Admin Password
+    show: true
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  keycloak:
+    image: docker.io/keycloak/keycloak:26.8.1
+    public: true
+    port: 8080
+    healthcheck: /realms/master
+    cmd: start
+    env:
+      KC_HOSTNAME: ${{ services.keycloak.url }}
+      KC_HTTP_ENABLED: true
+      KC_HTTP_PORT: 8080
+      KC_PROXY_HEADERS: xforwarded
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}
+      KC_DB_USERNAME: ${{ databases.db.user }}
+      KC_DB_PASSWORD: ${{ databases.db.password }}
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${{ secrets.admin_password }}
+
+done:
+  open: ${{ services.keycloak.url }}/admin/
+  message: Sign in to the admin console as admin with the temporary password below, then create a permanent admin user in the master realm and delete the temporary one. Configure email per realm under Realm settings, Email.

@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: ntfy
+  description: Send push notifications to your phone or desktop with a simple HTTP PUT or POST, from scripts, servers and apps. Comes with a web app and Android and iOS apps.
+  icon: https://raw.githubusercontent.com/binwiederhier/ntfy/v2.32.0/web/public/static/images/pwa-512x512.png
+  docs: https://docs.ntfy.sh/install/
+
+server:
+  minimum: starter
+  recommended: starter
+
+inputs:
+  default_access:
+    type: select
+    label: Default Access
+    help: What visitors without an account can do. With read-write, anyone who knows a topic name can publish and subscribe to it, like on ntfy.sh.
+    default: read-write
+    options:
+      - { value: read-write, label: Read and Write }
+      - { value: read-only, label: Read Only }
+      - { value: write-only, label: Write Only }
+      - { value: deny-all, label: Deny All }
+  admin_user:
+    type: string
+    label: Admin Username
+    default: admin
+    pattern: ^[a-zA-Z0-9._-]+$
+  admin_hash:
+    type: secret
+    label: Admin Password Hash
+    help: "Optional. ntfy only accepts a bcrypt hash. Create one with: docker run --rm -it binwiederhier/ntfy user hash. Leave empty to add users later with the ntfy CLI."
+    pattern: ^\$2[aby]\$\d\d\$.{53}$
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets publishers forward notifications as emails with the X-Email header.
+
+services:
+  ntfy:
+    image: docker.io/binwiederhier/ntfy:v2.32.0
+    public: true
+    port: 80
+    healthcheck: /v1/health
+    cmd: serve
+    volumes:
+      - name: ntfy-data
+        mountPath: /var/lib/ntfy
+    env:
+      NTFY_BASE_URL: ${{ services.ntfy.url }}
+      NTFY_LISTEN_HTTP: :80
+      NTFY_BEHIND_PROXY: true
+      NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+      NTFY_AUTH_FILE: /var/lib/ntfy/user.db
+      NTFY_ATTACHMENT_CACHE_DIR: /var/lib/ntfy/attachments
+      NTFY_AUTH_DEFAULT_ACCESS: ${{ inputs.default_access }}
+      NTFY_AUTH_USERS: ${{ if(inputs.admin_hash, inputs.admin_user, '') }}${{ if(inputs.admin_hash, ':', '') }}${{ inputs.admin_hash }}${{ if(inputs.admin_hash, ':admin', '') }}
+      NTFY_ENABLE_LOGIN: ${{ if(inputs.admin_hash, 'true', 'false') }}
+      # Relays iOS notifications through ntfy.sh, as iOS push only works via Apple's servers.
+      NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
+      NTFY_SMTP_SENDER_ADDR: ${{ addons.email.host }}${{ if(addons.email.enabled, ':', '') }}${{ addons.email.port }}
+      NTFY_SMTP_SENDER_USER: ${{ addons.email.user }}
+      NTFY_SMTP_SENDER_PASS: ${{ addons.email.password }}
+      NTFY_SMTP_SENDER_FROM: ${{ addons.email.from }}
+
+done:
+  open: ${{ services.ntfy.url }}
+  message: Open the web app and subscribe to a topic, then publish to it with curl -d "Hello" ${{ services.ntfy.url }}/<topic>. If you set an admin password hash, sign in as ${{ inputs.admin_user }}. In the phone apps, add ${{ services.ntfy.url }} as your default server.

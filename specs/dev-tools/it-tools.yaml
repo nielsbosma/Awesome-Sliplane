@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: IT-Tools
+  description: A collection of handy online tools for developers, such as encoders, converters, generators, formatters and network calculators, all running in the browser.
+  icon: https://raw.githubusercontent.com/CorentinTh/it-tools/main/public/android-chrome-192x192.png
+  docs: https://github.com/CorentinTh/it-tools
+
+server:
+  minimum: starter
+  recommended: starter
+
+services:
+  it-tools:
+    image: docker.io/corentinth/it-tools:2024.10.22-7ca5933
+    public: true
+    port: 80
+    healthcheck: /
+
+done:
+  open: ${{ services.it-tools.url }}
+  message: Open IT-Tools and pick a tool. There are no accounts, so anyone with the URL can use it.

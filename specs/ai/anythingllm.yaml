@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: AnythingLLM
+  description: All-in-one AI workspace. Chat with your documents, build agents and share workspaces with your team, using a built-in vector database and embedder.
+  icon: https://raw.githubusercontent.com/Mintplex-Labs/anything-llm/master/frontend/public/favicon.png
+  docs: https://docs.anythingllm.com/installation-docker/local-docker
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  app_password:
+    format: alphanumeric
+    length: 20
+    label: App Password
+    show: true
+
+addons:
+  llm:
+    use: llm
+    providers: [anthropic, openai, openrouter, opper, berget, openai-compatible]
+    default: anthropic
+
+services:
+  anythingllm:
+    image: docker.io/mintplexlabs/anythingllm:1.18.0
+    public: true
+    port: 3001
+    healthcheck: /api/ping
+    volumes:
+      - name: anythingllm-storage
+        mountPath: /app/server/storage
+    env:
+      SERVER_PORT: 3001
+      STORAGE_DIR: /app/server/storage
+      AUTH_TOKEN: ${{ secrets.app_password }}
+      JWT_SECRET: ${{ secret(48) }}
+      SIG_KEY: ${{ secret(48) }}
+      SIG_SALT: ${{ secret(48) }}
+      DISABLE_TELEMETRY: true
+      LLM_PROVIDER: ${{ if(addons.llm.provider == 'anthropic', 'anthropic', if(addons.llm.provider == 'openai', 'openai', if(addons.llm.provider == 'openrouter', 'openrouter', 'generic-openai'))) }}
+      ANTHROPIC_API_KEY: ${{ if(addons.llm.provider == 'anthropic', addons.llm.apiKey, '') }}
+      ANTHROPIC_MODEL_PREF: ${{ if(addons.llm.provider == 'anthropic', addons.llm.model, '') }}
+      OPEN_AI_KEY: ${{ if(addons.llm.provider == 'openai', addons.llm.apiKey, '') }}
+      OPEN_MODEL_PREF: ${{ if(addons.llm.provider == 'openai', addons.llm.model, '') }}
+      OPENROUTER_API_KEY: ${{ if(addons.llm.provider == 'openrouter', addons.llm.apiKey, '') }}
+      OPENROUTER_MODEL_PREF: ${{ if(addons.llm.provider == 'openrouter', addons.llm.model, '') }}
+      GENERIC_OPEN_AI_BASE_PATH: ${{ if(addons.llm.provider == 'opper', addons.llm.baseUrl, if(addons.llm.provider == 'berget', addons.llm.baseUrl, if(addons.llm.provider == 'openai-compatible', addons.llm.baseUrl, ''))) }}
+      GENERIC_OPEN_AI_API_KEY: ${{ if(addons.llm.provider == 'opper', addons.llm.apiKey, if(addons.llm.provider == 'berget', addons.llm.apiKey, if(addons.llm.provider == 'openai-compatible', addons.llm.apiKey, ''))) }}
+      GENERIC_OPEN_AI_MODEL_PREF: ${{ if(addons.llm.provider == 'opper', addons.llm.model, if(addons.llm.provider == 'berget', addons.llm.model, if(addons.llm.provider == 'openai-compatible', addons.llm.model, ''))) }}
+      GENERIC_OPEN_AI_MODEL_TOKEN_LIMIT: ${{ if(addons.llm.provider == 'opper', '32768', if(addons.llm.provider == 'berget', '32768', if(addons.llm.provider == 'openai-compatible', '32768', ''))) }}
+
+done:
+  open: ${{ services.anythingllm.url }}
+  message: Sign in with the app password below and finish the onboarding. Your model is already set up. To give teammates their own accounts, turn on multi-user mode under Settings, Security.

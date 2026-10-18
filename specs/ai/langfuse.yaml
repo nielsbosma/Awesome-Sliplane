@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Langfuse
+  description: Open-source LLM engineering platform. Trace and debug LLM apps, manage prompts, run evaluations and track cost and latency. Backed by Postgres, ClickHouse, Redis and S3.
+  icon: https://raw.githubusercontent.com/langfuse/langfuse/main/web/public/apple-touch-icon.png
+  docs: https://langfuse.com/self-hosting/deployment/docker-compose
+
+server:
+  minimum: large
+  recommended: x-large
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: You sign in to Langfuse with this address.
+    required: true
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: Leave off to keep the instance private. You can still invite people to your organization.
+    default: false
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+  clickhouse_password:
+    format: alphanumeric
+    length: 32
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends organization invites and password reset emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+buckets:
+  files: {}
+
+services:
+  clickhouse:
+    image: docker.io/clickhouse/clickhouse-server:25.12.11.4
+    port: 8123
+    volumes:
+      - name: langfuse-clickhouse
+        mountPath: /var/lib/clickhouse
+    env:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: langfuse
+      CLICKHOUSE_PASSWORD: ${{ secrets.clickhouse_password }}
+
+  web:
+    image: docker.io/langfuse/langfuse:4.63.0
+    public: true
+    port: 3000
+    healthcheck: /api/public/health
+    dependsOn: [clickhouse]
+    env:
+      NEXTAUTH_URL: ${{ services.web.url }}
+      NEXTAUTH_SECRET: ${{ secret(48) }}
+      SALT: ${{ secret(48) }}
+      ENCRYPTION_KEY: ${{ hex(64) }}
+      DATABASE_URL: ${{ databases.db.url }}
+      CLICKHOUSE_MIGRATION_URL: clickhouse://${{ services.clickhouse.internalHost }}:9000
+      CLICKHOUSE_URL: http://${{ services.clickhouse.internalHost }}:8123
+      CLICKHOUSE_USER: langfuse
+      CLICKHOUSE_PASSWORD: ${{ secrets.clickhouse_password }}
+      CLICKHOUSE_CLUSTER_ENABLED: false
+      REDIS_CONNECTION_STRING: ${{ databases.redis.url }}
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: ${{ buckets.files.bucket }}
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: ${{ buckets.files.region }}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: ${{ buckets.files.endpoint }}
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${{ buckets.files.accessKeyId }}
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${{ buckets.files.secretAccessKey }}
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: true
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: ${{ buckets.files.bucket }}
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: ${{ buckets.files.region }}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${{ buckets.files.endpoint }}
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${{ buckets.files.accessKeyId }}
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${{ buckets.files.secretAccessKey }}
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: true
+      LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+      AUTH_DISABLE_SIGNUP: ${{ if(inputs.signups, 'false', 'true') }}
+      LANGFUSE_INIT_ORG_ID: default
+      LANGFUSE_INIT_ORG_NAME: My Organization
+      LANGFUSE_INIT_USER_EMAIL: ${{ inputs.admin_email }}
+      LANGFUSE_INIT_USER_NAME: Admin
+      LANGFUSE_INIT_USER_PASSWORD: ${{ secrets.admin_password }}
+      TELEMETRY_ENABLED: false
+      EMAIL_FROM_ADDRESS: ${{ addons.email.from }}
+      SMTP_CONNECTION_URL: ${{ addons.email.url }}
+
+  worker:
+    image: docker.io/langfuse/langfuse-worker:4.63.0
+    envFrom: web
+
+done:
+  open: ${{ services.web.url }}
+  message: The first start runs database migrations and can take a few minutes. Then sign in with ${{ inputs.admin_email }} and the admin password below, create a project and copy its API keys into your app.

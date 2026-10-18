@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: InvoiceShelf
+  description: Open-source invoicing and expense tracking for freelancers and small businesses, with estimates, recurring invoices, payments and a customer portal.
+  icon: https://raw.githubusercontent.com/InvoiceShelf/InvoiceShelf/2.4.6/public/favicons/android-chrome-512x512.png
+  docs: https://github.com/InvoiceShelf/docker
+
+server:
+  minimum: base
+
+inputs:
+  timezone:
+    type: string
+    label: Time Zone
+    help: Time zone for dates and scheduled tasks, for example Europe/Paris or America/New_York.
+    default: UTC
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends invoices, estimates and payment receipts to your customers. The settings are prefilled in the setup wizard's email step.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  invoiceshelf:
+    image: docker.io/invoiceshelf/invoiceshelf:2.4.6
+    public: true
+    port: 8080
+    healthcheck: /healthcheck
+    volumes:
+      - name: invoiceshelf-storage
+        mountPath: /var/www/html/storage
+      - name: invoiceshelf-modules
+        mountPath: /var/www/html/Modules
+    env:
+      APP_NAME: InvoiceShelf
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_URL: ${{ services.invoiceshelf.url }}
+      APP_TIMEZONE: ${{ inputs.timezone }}
+      SESSION_DOMAIN: ${{ services.invoiceshelf.host }}
+      SANCTUM_STATEFUL_DOMAINS: ${{ services.invoiceshelf.host }}
+      TRUSTED_PROXIES: "*"
+      DB_CONNECTION: pgsql
+      DB_HOST: ${{ databases.db.host }}
+      DB_PORT: ${{ databases.db.port }}
+      DB_DATABASE: ${{ databases.db.database }}
+      DB_USERNAME: ${{ databases.db.user }}
+      DB_PASSWORD: ${{ databases.db.password }}
+      CACHE_STORE: file
+      SESSION_DRIVER: file
+      SESSION_LIFETIME: 240
+      AUTORUN_ENABLED: true
+      AUTORUN_LARAVEL_MIGRATION: false
+      MAIL_MAILER: ${{ if(addons.email.enabled, 'smtp', '') }}
+      MAIL_HOST: ${{ addons.email.host }}
+      MAIL_PORT: ${{ addons.email.port }}
+      MAIL_USERNAME: ${{ addons.email.user }}
+      MAIL_PASSWORD: ${{ addons.email.password }}
+      MAIL_ENCRYPTION: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'ssl', if(addons.email.security == 'starttls', 'tls', 'none')), '') }}
+      MAIL_SCHEME: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'smtps', 'smtp'), '') }}
+      MAIL_FROM_ADDRESS: ${{ addons.email.from }}
+      MAIL_FROM_NAME: ${{ if(addons.email.enabled, 'InvoiceShelf', '') }}
+
+done:
+  open: ${{ services.invoiceshelf.url }}/installation
+  message: "Follow the setup wizard. On the database step pick PostgreSQL and enter host ${{ databases.db.host }}, port ${{ databases.db.port }}, database ${{ databases.db.database }}, username ${{ databases.db.user }} and password ${{ databases.db.password }}. Then create your admin account and company."

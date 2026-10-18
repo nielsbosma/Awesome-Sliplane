@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Miniflux
+  description: Minimalist and opinionated feed reader for RSS, Atom and JSON feeds, with a fast keyboard-driven UI, full-text fetching and Fever and Google Reader APIs for mobile apps.
+  icon: https://raw.githubusercontent.com/miniflux/v2/main/internal/ui/static/bin/icon-512.png
+  docs: https://miniflux.app/docs/docker.html
+
+server:
+  minimum: starter
+  recommended: base
+
+inputs:
+  admin_username:
+    type: string
+    label: Admin Username
+    help: You sign in to Miniflux with this username.
+    default: admin
+    required: true
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  miniflux:
+    image: docker.io/miniflux/miniflux:2.3.3
+    public: true
+    port: 8080
+    healthcheck: /healthcheck
+    env:
+      DATABASE_URL: ${{ databases.db.url }}
+      RUN_MIGRATIONS: 1
+      CREATE_ADMIN: 1
+      ADMIN_USERNAME: ${{ inputs.admin_username }}
+      ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      BASE_URL: ${{ services.miniflux.url }}
+
+done:
+  open: ${{ services.miniflux.url }}
+  message: Sign in as ${{ inputs.admin_username }} with the admin password below, then add your first feed or import an OPML file under Feeds.

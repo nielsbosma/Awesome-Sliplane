@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Directus
+  description: Headless CMS and backend that turns a Postgres database into REST and GraphQL APIs, with a no-code data studio, roles, flows and file storage.
+  icon: https://raw.githubusercontent.com/directus/directus/v12.5.0/app/src/assets/logo-dark.svg
+  docs: https://directus.com/docs/self-hosting/overview
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: You sign in to Directus with this address.
+    required: true
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends user invites, password resets and emails from flows.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+services:
+  directus:
+    image: docker.io/directus/directus:12.5.0
+    public: true
+    port: 8055
+    healthcheck: /server/health
+    volumes:
+      - name: directus-uploads
+        mountPath: /directus/uploads
+      - name: directus-extensions
+        mountPath: /directus/extensions
+    env:
+      PUBLIC_URL: ${{ services.directus.url }}
+      SECRET: ${{ secret(64) }}
+      ADMIN_EMAIL: ${{ inputs.admin_email }}
+      ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      DB_CLIENT: pg
+      DB_HOST: ${{ databases.db.host }}
+      DB_PORT: ${{ databases.db.port }}
+      DB_DATABASE: ${{ databases.db.database }}
+      DB_USER: ${{ databases.db.user }}
+      DB_PASSWORD: ${{ databases.db.password }}
+      REDIS: ${{ databases.redis.url }}
+      CACHE_ENABLED: true
+      CACHE_STORE: redis
+      CACHE_AUTO_PURGE: true
+      WEBSOCKETS_ENABLED: true
+      EMAIL_TRANSPORT: ${{ if(addons.email.enabled, 'smtp', '') }}
+      EMAIL_FROM: ${{ addons.email.from }}
+      EMAIL_SMTP_HOST: ${{ addons.email.host }}
+      EMAIL_SMTP_PORT: ${{ addons.email.port }}
+      EMAIL_SMTP_USER: ${{ addons.email.user }}
+      EMAIL_SMTP_PASSWORD: ${{ addons.email.password }}
+      EMAIL_SMTP_SECURE: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      EMAIL_SMTP_IGNORE_TLS: ${{ if(addons.email.security == 'none', 'true', '') }}
+
+done:
+  open: ${{ services.directus.url }}/admin
+  message: Sign in with ${{ inputs.admin_email }} and the admin password below, then create your first collection in the data model settings.

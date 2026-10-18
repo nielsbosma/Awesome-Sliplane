@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Actual Budget
+  description: Local-first personal finance app built on envelope budgeting. The sync server keeps your budgets in sync across devices, with optional end-to-end encryption.
+  icon: https://raw.githubusercontent.com/actualbudget/actual/master/packages/desktop-client/public/maskable-512x512.png
+  docs: https://actualbudget.org/docs/install/docker
+
+server:
+  minimum: starter
+  recommended: base
+
+services:
+  actual:
+    image: docker.io/actualbudget/actual-server:26.10.0
+    public: true
+    port: 5006
+    healthcheck: /health
+    volumes:
+      - name: actual-data
+        mountPath: /data
+    env:
+      ACTUAL_LOGIN_METHOD: password
+
+done:
+  open: ${{ services.actual.url }}
+  message: Open Actual and set a server password; anyone with this password can open your budgets. Then create a budget or import one from YNAB or another Actual file.

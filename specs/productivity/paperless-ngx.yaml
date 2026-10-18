@@ -1,0 +1,97 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Paperless-ngx
+  description: Document management system that scans, OCRs, indexes and tags your paper documents so you can search and archive them, with optional AI suggestions.
+  icon: https://raw.githubusercontent.com/paperless-ngx/paperless-ngx/v3.3.2/docs/assets/favicon.png
+  docs: https://docs.paperless-ngx.com/setup/
+
+server:
+  minimum: base
+  recommended: medium
+
+inputs:
+  ocr_language:
+    type: string
+    label: OCR Language
+    help: Tesseract language used to read documents. The image includes eng, deu, fra, ita and spa; join several with a plus sign, like eng+deu.
+    default: eng
+  time_zone:
+    type: string
+    label: Time Zone
+    help: IANA time zone for dates, for example Europe/Berlin or America/New_York.
+    default: UTC
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+addons:
+  llm:
+    use: llm
+    optional: true
+    reason: Enables AI suggestions for titles, tags, correspondents and document types. With OpenAI, it also builds embeddings for document chat.
+    providers: [openai, anthropic, openrouter, berget, openai-compatible]
+    default: openai
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Paperless-ngx send password reset emails and email documents from workflows.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+volumes:
+  paperless-media:
+    description: Your original and archived documents
+
+services:
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.3.2
+    public: true
+    port: 8000
+    healthcheck: /accounts/login/
+    volumes:
+      - name: paperless-data
+        mountPath: /usr/src/paperless/data
+      - name: paperless-media
+        mountPath: /usr/src/paperless/media
+    env:
+      PAPERLESS_URL: ${{ services.paperless.url }}
+      PAPERLESS_SECRET_KEY: ${{ secret(64) }}
+      PAPERLESS_REDIS: ${{ databases.redis.url }}
+      PAPERLESS_DBENGINE: postgresql
+      PAPERLESS_DBHOST: ${{ databases.db.host }}
+      PAPERLESS_DBPORT: ${{ databases.db.port }}
+      PAPERLESS_DBNAME: ${{ databases.db.database }}
+      PAPERLESS_DBUSER: ${{ databases.db.user }}
+      PAPERLESS_DBPASS: ${{ databases.db.password }}
+      PAPERLESS_ADMIN_USER: admin
+      PAPERLESS_ADMIN_PASSWORD: ${{ secrets.admin_password }}
+      PAPERLESS_OCR_LANGUAGE: ${{ inputs.ocr_language }}
+      PAPERLESS_TIME_ZONE: ${{ inputs.time_zone }}
+      PAPERLESS_AI_ENABLED: ${{ addons.llm.enabled }}
+      PAPERLESS_AI_LLM_BACKEND: ${{ if(addons.llm.enabled, 'openai-like', '') }}
+      PAPERLESS_AI_LLM_ENDPOINT: ${{ addons.llm.baseUrl }}
+      PAPERLESS_AI_LLM_API_KEY: ${{ addons.llm.apiKey }}
+      PAPERLESS_AI_LLM_MODEL: ${{ addons.llm.model }}
+      PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ${{ if(addons.llm.provider == 'openai', 'openai-like', '') }}
+      PAPERLESS_EMAIL_HOST: ${{ addons.email.host }}
+      PAPERLESS_EMAIL_PORT: ${{ addons.email.port }}
+      PAPERLESS_EMAIL_HOST_USER: ${{ addons.email.user }}
+      PAPERLESS_EMAIL_HOST_PASSWORD: ${{ addons.email.password }}
+      PAPERLESS_EMAIL_FROM: ${{ addons.email.from }}
+      PAPERLESS_EMAIL_USE_TLS: ${{ if(addons.email.enabled, if(addons.email.security == 'starttls', 'true', 'false'), '') }}
+      PAPERLESS_EMAIL_USE_SSL: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+
+done:
+  open: ${{ services.paperless.url }}
+  message: The first start runs migrations and can take a few minutes. Then sign in as admin with the password below and upload your first document.

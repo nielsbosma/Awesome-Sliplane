@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Firefly III
+  description: Self-hosted personal finance manager. Track expenses, income, budgets, bills and savings goals across all your accounts, with rules and reports.
+  icon: https://raw.githubusercontent.com/firefly-iii/firefly-iii/main/public/android-chrome-512x512.png
+  docs: https://docs.firefly-iii.org/how-to/firefly-iii/installation/docker/
+
+server:
+  minimum: base
+
+inputs:
+  owner_email:
+    type: email
+    label: Owner Email
+    help: Firefly III sends error reports and admin notifications to this address.
+    required: true
+  timezone:
+    type: string
+    label: Time Zone
+    help: Time zone for dates and scheduled jobs, for example Europe/Amsterdam or America/New_York.
+    default: UTC
+
+secrets:
+  cron_token:
+    format: alphanumeric
+    length: 32
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Firefly III send password resets, bill reminders and security notifications.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  firefly:
+    image: docker.io/fireflyiii/core:version-6.7.9
+    public: true
+    port: 8080
+    healthcheck: /health
+    volumes:
+      - name: firefly-upload
+        mountPath: /var/www/html/storage/upload
+    env:
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_URL: ${{ services.firefly.url }}
+      APP_KEY: ${{ secret(32) }}
+      SITE_OWNER: ${{ inputs.owner_email }}
+      TZ: ${{ inputs.timezone }}
+      TRUSTED_PROXIES: "**"
+      DB_CONNECTION: pgsql
+      DB_HOST: ${{ databases.db.host }}
+      DB_PORT: ${{ databases.db.port }}
+      DB_DATABASE: ${{ databases.db.database }}
+      DB_USERNAME: ${{ databases.db.user }}
+      DB_PASSWORD: ${{ databases.db.password }}
+      STATIC_CRON_TOKEN: ${{ secrets.cron_token }}
+      MAIL_MAILER: ${{ if(addons.email.enabled, 'smtp', '') }}
+      MAIL_HOST: ${{ addons.email.host }}
+      MAIL_PORT: ${{ addons.email.port }}
+      MAIL_USERNAME: ${{ addons.email.user }}
+      MAIL_PASSWORD: ${{ addons.email.password }}
+      MAIL_SCHEME: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'smtps', 'smtp'), '') }}
+      MAIL_FROM: ${{ addons.email.from }}
+
+  # Calls Firefly III's cron endpoint every hour for recurring transactions, bill reminders and auto-budgets.
+  cron:
+    image: docker.io/library/alpine:3.24.2
+    cmd: sh -c "while true; do wget -qO- http://$FIREFLY_HOST:8080/api/v1/cron/$STATIC_CRON_TOKEN; sleep 3600; done"
+    dependsOn: [firefly]
+    env:
+      FIREFLY_HOST: ${{ services.firefly.internalHost }}
+      STATIC_CRON_TOKEN: ${{ secrets.cron_token }}
+
+done:
+  open: ${{ services.firefly.url }}/register
+  message: The first start sets up the database, which takes a minute. Then register your account; the first account becomes the admin. You can turn off registration afterwards under Options > Administration.

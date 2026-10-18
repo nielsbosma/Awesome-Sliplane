@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Mailpit
+  description: Email testing tool. Catches the mail your apps send over SMTP and shows it in a web inbox with HTML checks, link checks and an API.
+  icon: https://raw.githubusercontent.com/axllent/mailpit/v1.31.6/server/ui/mailpit.svg
+  docs: https://github.com/axllent/mailpit
+
+server:
+  minimum: starter
+  recommended: base
+
+inputs:
+  max_messages:
+    type: number
+    label: Messages to Keep
+    help: Older messages are deleted once the inbox holds this many. Use 0 to keep everything.
+    default: 500
+
+secrets:
+  ui_password:
+    format: alphanumeric
+    length: 20
+    label: Web UI Password
+    show: true
+
+services:
+  mailpit:
+    image: docker.io/axllent/mailpit:v1.31.6
+    public: true
+    # The web UI is public on 8025. SMTP listens on 1025 and is only reachable from
+    # other services on the same server, at this service's internal host.
+    port: 8025
+    healthcheck: /livez
+    volumes:
+      - name: mailpit-data
+        mountPath: /data
+    env:
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: ${{ inputs.max_messages }}
+      MP_UI_AUTH: admin:${{ secrets.ui_password }}
+      MP_SMTP_AUTH_ACCEPT_ANY: true
+      MP_SMTP_AUTH_ALLOW_INSECURE: true
+
+done:
+  open: ${{ services.mailpit.url }}
+  message: Sign in as admin with the password below. Point apps on the same server at SMTP host ${{ services.mailpit.internalHost }}, port 1025, without TLS; any username and password are accepted.

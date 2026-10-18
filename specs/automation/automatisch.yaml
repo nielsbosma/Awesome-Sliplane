@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Automatisch
+  description: Open source business automation, an alternative to Zapier. Connect services like Slack, GitHub and Google Sheets in flows that run on your own server.
+  icon: https://avatars.githubusercontent.com/automatisch
+  docs: https://automatisch.io/docs/guide/installation
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends password reset emails.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+services:
+  main:
+    image: docker.io/automatischio/automatisch:0.15.0
+    public: true
+    port: 3000
+    healthcheck: /healthcheck
+    env:
+      APP_ENV: production
+      API_URL: ${{ services.main.url }}
+      WEB_APP_URL: ${{ services.main.url }}
+      ENCRYPTION_KEY: ${{ secret(48) }}
+      WEBHOOK_SECRET_KEY: ${{ secret(48) }}
+      APP_SECRET_KEY: ${{ secret(48) }}
+      # Without this the image seeds user@automatisch.io with the password "sample".
+      DISABLE_SEED_USER: true
+      TELEMETRY_ENABLED: false
+      POSTGRES_HOST: ${{ databases.db.host }}
+      POSTGRES_PORT: ${{ databases.db.port }}
+      POSTGRES_DATABASE: ${{ databases.db.database }}
+      POSTGRES_USERNAME: ${{ databases.db.user }}
+      POSTGRES_PASSWORD: ${{ databases.db.password }}
+      REDIS_HOST: ${{ databases.redis.host }}
+      REDIS_PORT: ${{ databases.redis.port }}
+      SMTP_HOST: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_SECURE: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      SMTP_USER: ${{ addons.email.user }}
+      SMTP_PASSWORD: ${{ addons.email.password }}
+      FROM_EMAIL: ${{ addons.email.from }}
+
+  worker:
+    image: docker.io/automatischio/automatisch:0.15.0
+    envFrom: main
+    dependsOn: [main]
+    env:
+      WORKER: true
+
+done:
+  open: ${{ services.main.url }}/installation
+  message: Create the admin account on the installation page. It is only available until the first account exists.

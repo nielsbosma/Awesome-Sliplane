@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: WordPress
+  description: The open-source CMS behind much of the web. Build sites, blogs and stores with thousands of themes and plugins.
+  icon: https://raw.githubusercontent.com/WordPress/wordpress-develop/trunk/src/wp-admin/images/w-logo-blue.png
+  docs: https://hub.docker.com/_/wordpress
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  db_password:
+    format: alphanumeric
+    length: 32
+
+volumes:
+  wordpress-files:
+    description: WordPress core, themes, plugins and uploads
+
+services:
+  mariadb:
+    image: docker.io/library/mariadb:11.8.9
+    port: 3306
+    protocol: tcp
+    volumes:
+      - name: wordpress-mariadb
+        mountPath: /var/lib/mysql
+    env:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: ${{ secrets.db_password }}
+      MARIADB_RANDOM_ROOT_PASSWORD: 1
+
+  wordpress:
+    image: docker.io/library/wordpress:7.1.3-apache
+    public: true
+    port: 80
+    healthcheck: /readme.html
+    dependsOn: [mariadb]
+    volumes:
+      - name: wordpress-files
+        mountPath: /var/www/html
+    env:
+      WORDPRESS_DB_HOST: ${{ services.mariadb.internalHost }}:3306
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${{ secrets.db_password }}
+      WORDPRESS_AUTH_KEY: ${{ secret(64) }}
+      WORDPRESS_SECURE_AUTH_KEY: ${{ secret(64) }}
+      WORDPRESS_LOGGED_IN_KEY: ${{ secret(64) }}
+      WORDPRESS_NONCE_KEY: ${{ secret(64) }}
+      WORDPRESS_AUTH_SALT: ${{ secret(64) }}
+      WORDPRESS_SECURE_AUTH_SALT: ${{ secret(64) }}
+      WORDPRESS_LOGGED_IN_SALT: ${{ secret(64) }}
+      WORDPRESS_NONCE_SALT: ${{ secret(64) }}
+
+done:
+  open: ${{ services.wordpress.url }}/wp-admin/install.php
+  message: Finish the installation right away by choosing a language, site title and admin account. WordPress has no built-in SMTP settings, so install an SMTP plugin to send email.

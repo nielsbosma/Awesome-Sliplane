@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Kestra
+  description: Open source orchestration for data pipelines, infrastructure and business workflows, declared in YAML and built in a web UI with hundreds of plugins.
+  icon: https://raw.githubusercontent.com/kestra-io/kestra/v2.0.6/ui/public/favicon-192x192.png
+  docs: https://kestra.io/docs/installation/docker-compose
+
+server:
+  minimum: medium
+  recommended: large
+
+inputs:
+  admin_email:
+    type: email
+    label: Admin Email
+    help: You sign in to Kestra with this address.
+    required: true
+  admin_password:
+    type: secret
+    label: Admin Password
+    help: At least 8 characters with an uppercase letter, a lowercase letter and a number.
+    required: true
+    pattern: ^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])[^"\\]{8,256}$
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  kestra:
+    image: docker.io/kestra/kestra:v2.0.6
+    public: true
+    port: 8080
+    healthcheck: /ping
+    cmd: server standalone
+    volumes:
+      # The image runs as the kestra user, and its home folder is the one it can write to.
+      - name: kestra-storage
+        mountPath: /home/kestra
+    env:
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}
+            driverClassName: org.postgresql.Driver
+            username: "${{ databases.db.user }}"
+            password: "${{ databases.db.password }}"
+        kestra:
+          server:
+            basic-auth:
+              username: "${{ inputs.admin_email }}"
+              password: "${{ inputs.admin_password }}"
+          repository:
+            type: postgres
+          queue:
+            type: postgres
+          storage:
+            type: local
+            local:
+              base-path: /home/kestra/storage
+          tasks:
+            tmp-dir:
+              path: /tmp/kestra-wd/tmp
+          url: ${{ services.kestra.url }}/
+
+done:
+  open: ${{ services.kestra.url }}
+  message: Sign in with ${{ inputs.admin_email }} and the admin password you chose. There is no Docker socket here, so set taskRunner type io.kestra.plugin.core.runner.Process on script tasks (the image includes Python).

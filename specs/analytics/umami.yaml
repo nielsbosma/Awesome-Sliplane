@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Umami
+  description: Simple, fast, privacy-focused web analytics without cookies. A lightweight alternative to Google Analytics, backed by Postgres.
+  icon: https://raw.githubusercontent.com/umami-software/umami/master/public/apple-touch-icon.png
+  docs: https://docs.umami.is/docs/install
+
+server:
+  minimum: starter
+  recommended: base
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  umami:
+    image: ghcr.io/umami-software/umami:3.4.0
+    public: true
+    port: 3000
+    healthcheck: /api/heartbeat
+    env:
+      DATABASE_URL: ${{ databases.db.url }}
+      APP_SECRET: ${{ secret(48) }}
+      TWO_FACTOR_ENCRYPTION_KEY: ${{ hex(64) }}
+
+done:
+  open: ${{ services.umami.url }}/login
+  message: Sign in with username admin and password umami, then change the password right away under Settings, Profile. Add a website to get its tracking code.

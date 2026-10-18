@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Pocket ID
+  description: A simple OIDC provider that lets users sign in to your self-hosted apps with passkeys instead of passwords.
+  icon: https://raw.githubusercontent.com/pocket-id/pocket-id/v2.18.0/frontend/static/img/static-logo-512.png
+  docs: https://pocket-id.org/docs/setup/installation
+
+server:
+  minimum: starter
+  recommended: base
+
+services:
+  pocket-id:
+    image: ghcr.io/pocket-id/pocket-id:v2.18.0
+    public: true
+    port: 1411
+    healthcheck: /healthz
+    volumes:
+      - name: pocket-id-data
+        mountPath: /app/data
+    env:
+      APP_URL: ${{ services.pocket-id.url }}
+      TRUST_PROXY: true
+      ENCRYPTION_KEY: ${{ secret(32) }}
+      ANALYTICS_DISABLED: true
+
+done:
+  open: ${{ services.pocket-id.url }}/setup
+  message: Create the admin account and register a passkey for it. The setup page only works until the first account exists. Data is kept in SQLite on the pocket-id-data volume.

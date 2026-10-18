@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Langflow
+  description: Visual builder for AI agents, RAG pipelines and MCP servers. Design flows in the browser, test them in the playground and serve them as APIs.
+  icon: https://raw.githubusercontent.com/langflow-ai/langflow/main/docs/static/img/langflow-icon-black-transparent.svg
+  docs: https://docs.langflow.org/deployment-docker
+
+server:
+  minimum: medium
+  recommended: large
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+addons:
+  llm:
+    use: llm
+    optional: true
+    providers: [anthropic, openai, openrouter]
+    default: anthropic
+    reason: Stores the API key as a global variable, so model components can use it without pasting the key into each flow.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  langflow:
+    image: docker.io/langflowai/langflow:1.12.6
+    public: true
+    port: 7860
+    healthcheck: /health
+    volumes:
+      - name: langflow-data
+        mountPath: /app/langflow
+    env:
+      LANGFLOW_HOST: 0.0.0.0
+      LANGFLOW_CONFIG_DIR: /app/langflow
+      LANGFLOW_DATABASE_URL: postgresql://${{ databases.db.user }}:${{ databases.db.password }}@${{ databases.db.host }}:${{ databases.db.port }}/${{ databases.db.database }}
+      LANGFLOW_AUTO_LOGIN: false
+      LANGFLOW_SUPERUSER: admin
+      LANGFLOW_SUPERUSER_PASSWORD: ${{ secrets.admin_password }}
+      LANGFLOW_SECRET_KEY: ${{ secret(48) }}
+      LANGFLOW_ENABLE_SIGNUP: false
+      LANGFLOW_DO_NOT_TRACK: true
+      ANTHROPIC_API_KEY: ${{ if(addons.llm.provider == 'anthropic', addons.llm.apiKey, '') }}
+      OPENAI_API_KEY: ${{ if(addons.llm.provider == 'openai', addons.llm.apiKey, '') }}
+      OPENROUTER_API_KEY: ${{ if(addons.llm.provider == 'openrouter', addons.llm.apiKey, '') }}
+
+done:
+  open: ${{ services.langflow.url }}/login
+  message: Sign in as admin with the admin password below. The first start runs database migrations and can take a few minutes. Add more users from the admin page.

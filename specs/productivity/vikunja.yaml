@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+# The image runs as UID 1000 and has no /app/vikunja/files directory, so a fresh volume there
+# would be owned by root and not writable. Attachments and avatars go to object storage instead.
+
+app:
+  name: Vikunja
+  description: Open-source to-do and project management app with lists, kanban boards, Gantt charts, tables, labels, reminders, CalDAV sync and shared projects.
+  icon: https://raw.githubusercontent.com/go-vikunja/vikunja/main/frontend/public/images/icons/android-chrome-512x512.png
+  docs: https://vikunja.io/docs/installing/
+
+server:
+  minimum: starter
+  recommended: base
+
+inputs:
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: Leave on to create your own account first. You can turn it off afterwards in the service settings.
+    default: true
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Sends task reminders, overdue digests, account confirmation and password reset emails. Without it, new accounts are active right away and passwords can't be reset by email.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+buckets:
+  files: {}
+
+services:
+  vikunja:
+    image: docker.io/vikunja/vikunja:2.7.0
+    public: true
+    port: 3456
+    healthcheck: /health
+    env:
+      VIKUNJA_SERVICE_PUBLICURL: ${{ services.vikunja.url }}/
+      VIKUNJA_SERVICE_SECRET: ${{ secret(64) }}
+      VIKUNJA_SERVICE_ENABLEREGISTRATION: ${{ inputs.signups }}
+      VIKUNJA_DATABASE_TYPE: postgres
+      VIKUNJA_DATABASE_HOST: ${{ databases.db.host }}:${{ databases.db.port }}
+      VIKUNJA_DATABASE_USER: ${{ databases.db.user }}
+      VIKUNJA_DATABASE_PASSWORD: ${{ databases.db.password }}
+      VIKUNJA_DATABASE_DATABASE: ${{ databases.db.database }}
+      VIKUNJA_DATABASE_SSLMODE: require
+      VIKUNJA_FILES_TYPE: s3
+      VIKUNJA_FILES_S3_ENDPOINT: ${{ buckets.files.endpoint }}
+      VIKUNJA_FILES_S3_BUCKET: ${{ buckets.files.bucket }}
+      VIKUNJA_FILES_S3_REGION: ${{ buckets.files.region }}
+      VIKUNJA_FILES_S3_ACCESSKEY: ${{ buckets.files.accessKeyId }}
+      VIKUNJA_FILES_S3_SECRETKEY: ${{ buckets.files.secretAccessKey }}
+      VIKUNJA_FILES_S3_USEPATHSTYLE: true
+      VIKUNJA_MAILER_ENABLED: ${{ addons.email.enabled }}
+      VIKUNJA_MAILER_HOST: ${{ addons.email.host }}
+      VIKUNJA_MAILER_PORT: ${{ addons.email.port }}
+      VIKUNJA_MAILER_USERNAME: ${{ addons.email.user }}
+      VIKUNJA_MAILER_PASSWORD: ${{ addons.email.password }}
+      VIKUNJA_MAILER_FROMEMAIL: ${{ addons.email.from }}
+      VIKUNJA_MAILER_FORCESSL: ${{ if(addons.email.security == 'tls', 'true', 'false') }}
+
+done:
+  open: ${{ services.vikunja.url }}/${{ if(inputs.signups, 'register', 'login') }}
+  message: ${{ if(inputs.signups, 'Create your account, then start your first project. Turn sign-ups off later by setting VIKUNJA_SERVICE_ENABLEREGISTRATION to false.', 'Sign-ups are off, so set VIKUNJA_SERVICE_ENABLEREGISTRATION to true in the service settings, create your account at /register, then set it back to false.') }}

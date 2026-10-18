@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Docmost
+  description: Open-source collaborative wiki and documentation software, an alternative to Confluence and Notion, with real-time editing, spaces, permissions, comments and diagrams.
+  icon: https://raw.githubusercontent.com/docmost/docmost/main/apps/client/public/icons/app-icon-512x512.png
+  docs: https://docmost.com/docs/installation
+
+server:
+  minimum: base
+  recommended: medium
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Docmost email workspace invitations and password reset links. Without it, share invite links by hand.
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+  redis:
+    engine: redis
+
+services:
+  docmost:
+    image: docker.io/docmost/docmost:0.96.0
+    public: true
+    port: 3000
+    healthcheck: /api/health
+    volumes:
+      - name: docmost-storage
+        mountPath: /app/data/storage
+    env:
+      APP_URL: ${{ services.docmost.url }}
+      APP_SECRET: ${{ hex(64) }}
+      DATABASE_URL: ${{ databases.db.url }}
+      REDIS_URL: ${{ databases.redis.url }}
+      STORAGE_DRIVER: local
+      DISABLE_TELEMETRY: true
+      MAIL_DRIVER: ${{ if(addons.email.enabled, 'smtp', 'log') }}
+      MAIL_FROM_ADDRESS: ${{ addons.email.from }}
+      MAIL_FROM_NAME: ${{ if(addons.email.enabled, 'Docmost', '') }}
+      SMTP_HOST: ${{ addons.email.host }}
+      SMTP_PORT: ${{ addons.email.port }}
+      SMTP_USERNAME: ${{ addons.email.user }}
+      SMTP_PASSWORD: ${{ addons.email.password }}
+      SMTP_SECURE: ${{ if(addons.email.enabled, if(addons.email.security == 'tls', 'true', 'false'), '') }}
+      SMTP_IGNORETLS: ${{ if(addons.email.enabled, if(addons.email.security == 'none', 'true', 'false'), '') }}
+
+done:
+  open: ${{ services.docmost.url }}/setup/register
+  message: Create your workspace and its owner account. Then invite your team from Settings > Members.

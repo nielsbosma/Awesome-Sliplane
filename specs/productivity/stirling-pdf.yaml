@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Stirling-PDF
+  description: Self-hosted PDF toolkit with 50+ tools to merge, split, convert, compress, OCR, sign, redact and edit PDFs in the browser. Files are processed on your server.
+  icon: https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/main/docs/stirling.png
+  docs: https://docs.stirlingpdf.com/
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  admin_password:
+    format: alphanumeric
+    length: 20
+    label: Admin Password
+    show: true
+
+addons:
+  email:
+    use: smtp
+    optional: true
+    reason: Lets Stirling-PDF email invitations when you add users.
+
+services:
+  stirling:
+    image: docker.io/stirlingtools/stirling-pdf:3.2.0
+    public: true
+    port: 8080
+    healthcheck: /api/v1/info/status
+    volumes:
+      - name: stirling-configs
+        mountPath: /configs
+    env:
+      SECURITY_ENABLELOGIN: true
+      SECURITY_INITIALLOGIN_USERNAME: admin
+      SECURITY_INITIALLOGIN_PASSWORD: ${{ secrets.admin_password }}
+      SYSTEM_BACKENDURL: ${{ services.stirling.url }}
+      SYSTEM_FRONTENDURL: ${{ services.stirling.url }}
+      SYSTEM_GOOGLEVISIBILITY: false
+      MAIL_ENABLED: ${{ addons.email.enabled }}
+      MAIL_ENABLEINVITES: ${{ addons.email.enabled }}
+      MAIL_HOST: ${{ addons.email.host }}
+      MAIL_PORT: ${{ addons.email.port }}
+      MAIL_USERNAME: ${{ addons.email.user }}
+      MAIL_PASSWORD: ${{ addons.email.password }}
+      MAIL_FROM: ${{ addons.email.from }}
+      MAIL_STARTTLSENABLE: ${{ if(addons.email.security == 'starttls', 'true', 'false') }}
+      MAIL_SSLENABLE: ${{ if(addons.email.security == 'tls', 'true', 'false') }}
+
+done:
+  open: ${{ services.stirling.url }}
+  message: The first start takes a minute or two. Sign in as admin with the password below, then add more users under Settings if you need them.

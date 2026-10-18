@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: HedgeDoc
+  description: Real-time collaborative Markdown editor. Write notes, docs and slides together in the browser and share them with a link.
+  icon: https://raw.githubusercontent.com/hedgedoc/hedgedoc/1.12.0/public/icons/android-chrome-512x512.png
+  docs: https://docs.hedgedoc.org/setup/docker/
+
+server:
+  minimum: starter
+  recommended: base
+
+inputs:
+  signups:
+    type: boolean
+    label: Allow Anyone to Sign Up
+    help: Lets visitors register with email and password. Turn this off after creating your own account to keep the instance private.
+    default: true
+  anonymous:
+    type: boolean
+    label: Allow Guest Notes
+    help: Lets people who are not signed in create notes.
+    default: false
+
+databases:
+  db:
+    engine: postgres
+    version: 17
+
+services:
+  hedgedoc:
+    image: quay.io/hedgedoc/hedgedoc:1.12.0
+    public: true
+    port: 3000
+    healthcheck: /_health
+    volumes:
+      - name: hedgedoc-uploads
+        mountPath: /hedgedoc/public/uploads
+    env:
+      CMD_DB_URL: ${{ databases.db.url }}
+      CMD_DOMAIN: ${{ services.hedgedoc.host }}
+      CMD_PROTOCOL_USESSL: true
+      CMD_URL_ADDPORT: false
+      CMD_HSTS_ENABLE: true
+      CMD_SESSION_SECRET: ${{ secret(64) }}
+      CMD_EMAIL: true
+      CMD_ALLOW_EMAIL_REGISTER: ${{ inputs.signups }}
+      CMD_ALLOW_ANONYMOUS: ${{ inputs.anonymous }}
+      CMD_ALLOW_GRAVATAR: false
+      CMD_IMAGE_UPLOAD_TYPE: filesystem
+
+done:
+  open: ${{ services.hedgedoc.url }}
+  message: Click Sign In and register an account with your email and a password. HedgeDoc has no admin role. Once your team has registered, set CMD_ALLOW_EMAIL_REGISTER to false in the service settings to close sign-ups.

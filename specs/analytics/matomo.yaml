@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://sliplane.opendeploy.cloud/schema/v1.json
+version: 1
+
+app:
+  name: Matomo
+  description: Open source web analytics that gives you full ownership of your data. A Google Analytics alternative with goals, funnels, heatmaps via plugins and GDPR tools.
+  icon: https://raw.githubusercontent.com/matomo-org/matomo/5.x-dev/plugins/CoreHome/images/applogo_732.png
+  docs: https://hub.docker.com/_/matomo
+
+server:
+  minimum: base
+  recommended: medium
+
+secrets:
+  db_password:
+    format: alphanumeric
+    length: 32
+
+volumes:
+  matomo-files:
+    description: Matomo files, including config.ini.php and installed plugins
+
+services:
+  matomo:
+    image: docker.io/library/matomo:5.14.0-apache
+    public: true
+    port: 80
+    healthcheck: /matomo.js
+    dependsOn: [mariadb]
+    # Tells Apache that requests arrived over HTTPS and which client IP they came from,
+    # so Matomo builds https links and records real visitor IPs behind Sliplane's proxy.
+    cmd: sh -c "printenv APACHE_PROXY_CONF > /etc/apache2/conf-enabled/sliplane-proxy.conf && a2enmod remoteip && exec apache2-foreground"
+    volumes:
+      - name: matomo-files
+        mountPath: /var/www/html
+    env:
+      APACHE_PROXY_CONF: |
+        SetEnvIf X-Forwarded-Proto "^https$" HTTPS=on
+        RemoteIPHeader X-Forwarded-For
+        RemoteIPInternalProxy 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10
+      MATOMO_DATABASE_HOST: ${{ services.mariadb.internalHost }}
+      MATOMO_DATABASE_ADAPTER: mysql
+      MATOMO_DATABASE_TABLES_PREFIX: matomo_
+      MATOMO_DATABASE_USERNAME: matomo
+      MATOMO_DATABASE_PASSWORD: ${{ secrets.db_password }}
+      MATOMO_DATABASE_DBNAME: matomo
+      PHP_MEMORY_LIMIT: 512M
+
+  mariadb:
+    image: docker.io/library/mariadb:11.4.13
+    port: 3306
+    protocol: tcp
+    cmd: --max-allowed-packet=64MB
+    volumes:
+      - name: matomo-mariadb
+        mountPath: /var/lib/mysql
+    env:
+      MARIADB_DATABASE: matomo
+      MARIADB_USER: matomo
+      MARIADB_PASSWORD: ${{ secrets.db_password }}
+      MARIADB_RANDOM_ROOT_PASSWORD: 1
+
+done:
+  open: ${{ services.matomo.url }}
+  message: Run the installation wizard. The database settings are already filled in, so continue through those steps, then create the superuser and add your first website to get the tracking code.
