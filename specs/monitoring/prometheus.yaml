@@ -6,6 +6,7 @@ app:
   description: Time-series metrics database. Runs privately on your server and accepts metrics pushed over Prometheus remote write and OTLP, ready to query from Grafana or other services on the same server.
   icon: https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/images/prometheus-logo.svg
   docs: https://prometheus.io/docs/prometheus/latest/installation/
+  source: https://github.com/prometheus/prometheus
 
 server:
   minimum: base

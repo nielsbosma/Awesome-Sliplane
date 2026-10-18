@@ -6,6 +6,7 @@ app:
   description: Real-time collaborative Markdown editor. Write notes, docs and slides together in the browser and share them with a link.
   icon: https://raw.githubusercontent.com/hedgedoc/hedgedoc/1.12.0/public/icons/android-chrome-512x512.png
   docs: https://docs.hedgedoc.org/setup/docker/
+  source: https://github.com/hedgedoc/hedgedoc
 
 server:
   minimum: starter

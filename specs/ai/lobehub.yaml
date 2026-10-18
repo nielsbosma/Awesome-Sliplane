@@ -6,6 +6,7 @@ app:
   description: Modern AI chat and agent workspace (formerly LobeChat). Server edition with accounts, synced history, a knowledge base and file uploads, backed by Postgres with pgvector and S3 storage.
   icon: https://raw.githubusercontent.com/lobehub/lobehub/main/public/apple-touch-icon.png
   docs: https://lobehub.com/docs/self-hosting/server-database
+  source: https://github.com/lobehub/lobehub
 
 server:
   minimum: medium

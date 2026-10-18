@@ -6,6 +6,7 @@ app:
   description: Open-source LLM engineering platform. Trace and debug LLM apps, manage prompts, run evaluations and track cost and latency. Backed by Postgres, ClickHouse, Redis and S3.
   icon: https://raw.githubusercontent.com/langfuse/langfuse/main/web/public/apple-touch-icon.png
   docs: https://langfuse.com/self-hosting/deployment/docker-compose
+  source: https://github.com/langfuse/langfuse
 
 server:
   minimum: large

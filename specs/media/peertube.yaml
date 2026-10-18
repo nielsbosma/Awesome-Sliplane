@@ -6,6 +6,7 @@ app:
   description: Decentralized video platform. Host your own video site with channels, playlists and transcoding, and federate with other PeerTube instances through ActivityPub.
   icon: https://raw.githubusercontent.com/Chocobozzz/PeerTube/develop/client/src/assets/images/icons/icon-192x192.png
   docs: https://docs.joinpeertube.org/install/docker
+  source: https://github.com/Chocobozzz/PeerTube
 
 server:
   minimum: medium

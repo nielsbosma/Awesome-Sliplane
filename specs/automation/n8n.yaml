@@ -6,6 +6,7 @@ app:
   description: Workflow automation with a visual editor, 400+ integrations and AI nodes, backed by Postgres.
   icon: https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-logo.png
   docs: https://docs.n8n.io/hosting/
+  source: https://github.com/n8n-io/n8n
 
 server:
   minimum: base

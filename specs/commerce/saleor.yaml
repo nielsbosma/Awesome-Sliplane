@@ -6,6 +6,7 @@ app:
   description: Headless, GraphQL-first commerce platform with a React dashboard for managing products, orders, customers and channels.
   icon: https://github.com/saleor.png
   docs: https://docs.saleor.io/setup/docker-compose
+  source: https://github.com/saleor/saleor
 
 server:
   minimum: medium

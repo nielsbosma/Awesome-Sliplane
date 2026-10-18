@@ -6,6 +6,7 @@ app:
   description: Open-source no-code database and Airtable alternative, with an application builder, automations and a REST API.
   icon: https://raw.githubusercontent.com/baserow/baserow/develop/web-frontend/modules/core/static/img/favicon_192.png
   docs: https://baserow.io/docs/installation/install-with-docker
+  source: https://github.com/baserow/baserow
 
 server:
   minimum: base

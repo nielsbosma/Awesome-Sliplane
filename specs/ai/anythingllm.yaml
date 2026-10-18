@@ -6,6 +6,7 @@ app:
   description: All-in-one AI workspace. Chat with your documents, build agents and share workspaces with your team, using a built-in vector database and embedder.
   icon: https://raw.githubusercontent.com/Mintplex-Labs/anything-llm/master/frontend/public/favicon.png
   docs: https://docs.anythingllm.com/installation-docker/local-docker
+  source: https://github.com/Mintplex-Labs/anything-llm
 
 server:
   minimum: base

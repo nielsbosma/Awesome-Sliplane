@@ -6,6 +6,7 @@ app:
   description: Open source customer data platform. Self-hosted data plane that collects events from your apps and routes them to warehouses and tools, configured from a free RudderStack Open Source account.
   icon: https://raw.githubusercontent.com/rudderlabs/rudder-server/master/resources/logo.png
   docs: https://www.rudderstack.com/docs/get-started/rudderstack-open-source/data-plane-setup/docker/
+  source: https://github.com/rudderlabs/rudder-server
 
 server:
   minimum: base

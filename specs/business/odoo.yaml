@@ -6,6 +6,7 @@ app:
   description: Odoo Community, the open-source suite of business apps for CRM, sales, invoicing, inventory, projects, website and more.
   icon: https://raw.githubusercontent.com/odoo/odoo/20.0/addons/web/static/img/odoo-icon-192x192.png
   docs: https://hub.docker.com/_/odoo
+  source: https://github.com/odoo/odoo
 
 server:
   minimum: base

@@ -11,6 +11,7 @@ app:
   description: Open-source scheduling infrastructure. Share booking links, connect your calendars and let people book time with you, backed by Postgres.
   icon: https://raw.githubusercontent.com/calcom/cal.com/v6.2.0/apps/web/public/cal-com-icon.svg
   docs: https://cal.com/docs/self-hosting/docker
+  source: https://github.com/calcom/cal.com
 
 server:
   minimum: base

@@ -6,6 +6,7 @@ app:
   description: Build AI agents and LLM workflows visually with drag-and-drop nodes, then call them through an API or embed them as a chat widget.
   icon: https://raw.githubusercontent.com/FlowiseAI/Flowise/main/packages/ui/public/logo192.png
   docs: https://docs.flowiseai.com/configuration/environment-variables
+  source: https://github.com/FlowiseAI/Flowise
 
 server:
   minimum: base

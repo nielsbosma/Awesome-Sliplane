@@ -6,6 +6,7 @@ app:
   description: Open source e-commerce platform with a storefront, back office, catalog, orders, payments and a large module marketplace.
   icon: https://raw.githubusercontent.com/PrestaShop/PrestaShop/develop/img/logo.png
   docs: https://devdocs.prestashop-project.org/9/basics/installation/environments/docker/
+  source: https://github.com/PrestaShop/PrestaShop
 
 server:
   minimum: base

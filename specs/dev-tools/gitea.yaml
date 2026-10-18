@@ -6,6 +6,7 @@ app:
   description: Lightweight self-hosted Git service with repositories, pull requests, issues, wikis, packages and Actions, backed by Postgres. Git over HTTPS only.
   icon: https://raw.githubusercontent.com/go-gitea/gitea/v28.1.0/assets/logo.svg
   docs: https://docs.gitea.com/installation/install-with-docker-rootless
+  source: https://github.com/go-gitea/gitea
 
 server:
   minimum: base

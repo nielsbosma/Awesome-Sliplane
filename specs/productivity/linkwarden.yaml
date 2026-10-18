@@ -6,6 +6,7 @@ app:
   description: Collaborative bookmark manager that saves a screenshot, PDF and readable copy of every page you bookmark, with collections, tags, full-text search and optional AI tagging.
   icon: https://raw.githubusercontent.com/linkwarden/linkwarden/main/assets/logo.png
   docs: https://docs.linkwarden.app/self-hosting/setup
+  source: https://github.com/linkwarden/linkwarden
 
 server:
   minimum: base

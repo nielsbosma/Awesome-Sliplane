@@ -6,6 +6,7 @@ app:
   description: Simple, privacy-friendly web analytics without cookies. Community Edition backed by Postgres and ClickHouse.
   icon: https://raw.githubusercontent.com/plausible/docs/master/static/img/plausible_logo.png
   docs: https://github.com/plausible/community-edition
+  source: https://github.com/plausible/analytics
 
 server:
   minimum: base

@@ -6,6 +6,7 @@ app:
   description: The open-source CMS behind much of the web. Build sites, blogs and stores with thousands of themes and plugins.
   icon: https://raw.githubusercontent.com/WordPress/wordpress-develop/trunk/src/wp-admin/images/w-logo-blue.png
   docs: https://hub.docker.com/_/wordpress
+  source: https://github.com/WordPress/WordPress
 
 server:
   minimum: base

@@ -5,6 +5,7 @@ app:
   name: LiteLLM
   description: OpenAI-compatible LLM gateway for 100+ providers, with virtual keys, budgets, spend tracking and an admin UI, backed by Postgres.
   docs: https://docs.litellm.ai/docs/proxy/deploy
+  source: https://github.com/BerriAI/litellm
 
 server:
   minimum: base

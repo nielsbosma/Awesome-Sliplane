@@ -6,6 +6,7 @@ app:
   description: Open source identity and access management with OIDC, OAuth 2.1, SAML, social sign-in, MFA, organizations and RBAC. Runs the auth endpoint on your own domain and the admin console as a second service.
   icon: https://raw.githubusercontent.com/logto-io/logto/master/logo.png
   docs: https://docs.logto.io/logto-oss/get-started-with-oss
+  source: https://github.com/logto-io/logto
 
 server:
   minimum: base

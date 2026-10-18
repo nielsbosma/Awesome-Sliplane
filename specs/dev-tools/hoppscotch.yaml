@@ -6,6 +6,7 @@ app:
   description: Open source API development ecosystem for testing REST, GraphQL, WebSocket and other APIs, with team workspaces and an admin dashboard.
   icon: https://github.com/hoppscotch.png
   docs: https://docs.hoppscotch.io/documentation/self-host/community-edition/install-and-build
+  source: https://github.com/hoppscotch/hoppscotch
 
 server:
   minimum: base

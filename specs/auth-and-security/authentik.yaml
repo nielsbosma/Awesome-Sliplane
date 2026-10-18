@@ -6,6 +6,7 @@ app:
   description: Open source identity provider with SSO over OAuth2/OIDC, SAML, LDAP and proxy authentication, flows, MFA, passkeys and user management. Runs a server and a background worker on Postgres.
   icon: https://raw.githubusercontent.com/goauthentik/authentik/version/2025.2.0/web/icons/icon.svg
   docs: https://docs.goauthentik.io/install-config/install/docker-compose/
+  source: https://github.com/goauthentik/authentik
 
 server:
   minimum: base

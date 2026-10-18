@@ -6,6 +6,7 @@ app:
   description: Headless CMS and backend that turns a Postgres database into REST and GraphQL APIs, with a no-code data studio, roles, flows and file storage.
   icon: https://raw.githubusercontent.com/directus/directus/v12.5.0/app/src/assets/logo-dark.svg
   docs: https://directus.com/docs/self-hosting/overview
+  source: https://github.com/directus/directus
 
 server:
   minimum: base

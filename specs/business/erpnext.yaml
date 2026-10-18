@@ -6,6 +6,7 @@ app:
   description: Open source ERP built on the Frappe framework, with accounting, inventory, sales, purchasing, manufacturing, projects and HR in one app.
   icon: https://raw.githubusercontent.com/frappe/erpnext/develop/erpnext/public/images/erpnext-logo.png
   docs: https://github.com/frappe/frappe_docker
+  source: https://github.com/frappe/erpnext
 
 server:
   minimum: medium

@@ -12,6 +12,7 @@ app:
   description: Open-source design and prototyping platform for teams, an alternative to Figma, built on open standards like SVG, CSS and HTML.
   icon: https://raw.githubusercontent.com/penpot/penpot/develop/frontend/resources/images/favicon.png
   docs: https://help.penpot.app/technical-guide/getting-started/docker/
+  source: https://github.com/penpot/penpot
 
 server:
   minimum: medium

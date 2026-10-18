@@ -6,6 +6,7 @@ app:
   description: Open source identity infrastructure with OIDC, OAuth 2.0 and SAML, multi-tenancy with organizations, passkeys, MFA, social login and an audit trail of every change.
   icon: https://raw.githubusercontent.com/zitadel/zitadel/v4.19.5/console/src/assets/icons/android-chrome-512x512.png
   docs: https://zitadel.com/docs/self-hosting/deploy/compose
+  source: https://github.com/zitadel/zitadel
 
 server:
   minimum: base

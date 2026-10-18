@@ -11,6 +11,7 @@ app:
   description: Online editors for documents, spreadsheets and presentations with real-time co-editing. Connect it to Nextcloud, Seafile, Moodle and similar apps, which open files in it.
   icon: https://raw.githubusercontent.com/ONLYOFFICE/onlyoffice-nextcloud/master/img/app.svg
   docs: https://helpcenter.onlyoffice.com/docs/installation/docs-community-install-docker.aspx
+  source: https://github.com/ONLYOFFICE/DocumentServer
 
 server:
   minimum: medium

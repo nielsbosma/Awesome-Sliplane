@@ -6,6 +6,7 @@ app:
   description: Open-source publishing platform for blogs, newsletters and paid memberships, with a fast editor, themes and built-in email.
   icon: https://raw.githubusercontent.com/TryGhost/Ghost/v6.71.0/apps/admin/src/assets/img/apple-touch-icon.png
   docs: https://docs.ghost.org/install/docker
+  source: https://github.com/TryGhost/Ghost
 
 server:
   minimum: base

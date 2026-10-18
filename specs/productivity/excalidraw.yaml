@@ -6,6 +6,7 @@ app:
   description: Virtual whiteboard for sketching hand-drawn style diagrams. Drawings are saved in the browser and can be exported as PNG, SVG or .excalidraw files.
   icon: https://raw.githubusercontent.com/excalidraw/excalidraw/master/public/favicon.svg
   docs: https://github.com/excalidraw/excalidraw
+  source: https://github.com/excalidraw/excalidraw
 
 server:
   minimum: starter

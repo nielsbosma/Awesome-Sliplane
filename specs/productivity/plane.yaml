@@ -14,6 +14,7 @@ app:
   description: Open source project management for tracking issues, sprints (cycles), modules, pages and roadmaps. An alternative to Jira, Linear and Asana.
   icon: https://raw.githubusercontent.com/makeplane/plane/preview/apps/web/app/assets/favicon/apple-touch-icon.png
   docs: https://developers.plane.so/self-hosting/methods/docker-aio
+  source: https://github.com/makeplane/plane
 
 server:
   minimum: medium

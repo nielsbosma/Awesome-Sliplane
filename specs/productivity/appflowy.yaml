@@ -16,6 +16,7 @@ app:
   description: Open source Notion alternative for docs, wikis, databases, kanban boards and real-time collaboration. This deploys AppFlowy Cloud, the server the AppFlowy desktop, mobile and web apps sync with.
   icon: https://raw.githubusercontent.com/AppFlowy-IO/AppFlowy/main/frontend/resources/flowy_icons/40x/app_logo.svg
   docs: https://appflowy.com/docs/Self-hosting-AppFlowy
+  source: https://github.com/AppFlowy-IO/AppFlowy
 
 server:
   minimum: medium

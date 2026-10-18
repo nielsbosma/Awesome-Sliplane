@@ -9,6 +9,7 @@ app:
   description: Open-source to-do and project management app with lists, kanban boards, Gantt charts, tables, labels, reminders, CalDAV sync and shared projects.
   icon: https://raw.githubusercontent.com/go-vikunja/vikunja/main/frontend/public/images/icons/android-chrome-512x512.png
   docs: https://vikunja.io/docs/installing/
+  source: https://github.com/go-vikunja/vikunja
 
 server:
   minimum: starter

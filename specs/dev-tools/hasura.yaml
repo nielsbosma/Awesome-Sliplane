@@ -6,6 +6,7 @@ app:
   description: Instant realtime GraphQL and REST APIs on Postgres, with permissions, event triggers, actions and a web console.
   icon: https://raw.githubusercontent.com/hasura/graphql-engine/v2.51.0/docs/static/img/favicon.png
   docs: https://hasura.io/docs/2.0/deployment/deployment-guides/docker/
+  source: https://github.com/hasura/graphql-engine
 
 server:
   minimum: base

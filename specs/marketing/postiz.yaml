@@ -6,6 +6,7 @@ app:
   description: Open-source social media scheduling tool. Plan, write with AI, and publish posts to X, LinkedIn, Instagram, Bluesky, Mastodon and 20+ other channels.
   icon: https://raw.githubusercontent.com/gitroomhq/postiz-app/main/apps/frontend/public/logo.svg
   docs: https://docs.postiz.com/quickstart
+  source: https://github.com/gitroomhq/postiz-app
 
 server:
   minimum: medium

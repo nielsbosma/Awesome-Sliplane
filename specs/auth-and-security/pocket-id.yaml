@@ -6,6 +6,7 @@ app:
   description: A simple OIDC provider that lets users sign in to your self-hosted apps with passkeys instead of passwords.
   icon: https://raw.githubusercontent.com/pocket-id/pocket-id/v2.18.0/frontend/static/img/static-logo-512.png
   docs: https://pocket-id.org/docs/setup/installation
+  source: https://github.com/pocket-id/pocket-id
 
 server:
   minimum: starter

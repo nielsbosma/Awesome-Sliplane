@@ -6,6 +6,7 @@ app:
   description: Self-hosted AI chat with multiple users, agents, file uploads and conversation search, for Anthropic, OpenAI and OpenAI-compatible models.
   icon: https://raw.githubusercontent.com/danny-avila/LibreChat/main/client/public/assets/logo.svg
   docs: https://www.librechat.ai/docs/local/docker
+  source: https://github.com/danny-avila/LibreChat
 
 server:
   minimum: medium

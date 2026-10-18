@@ -9,6 +9,7 @@ app:
   description: Open-source helpdesk and ticketing system for email, chat, phone and social channels, with a knowledge base, SLAs and reporting.
   icon: https://raw.githubusercontent.com/zammad/zammad/stable/public/assets/images/logo.svg
   docs: https://docs.zammad.org/en/latest/install/docker-compose.html
+  source: https://github.com/zammad/zammad
 
 server:
   minimum: medium

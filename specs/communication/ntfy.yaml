@@ -6,6 +6,7 @@ app:
   description: Send push notifications to your phone or desktop with a simple HTTP PUT or POST, from scripts, servers and apps. Comes with a web app and Android and iOS apps.
   icon: https://raw.githubusercontent.com/binwiederhier/ntfy/v2.32.0/web/public/static/images/pwa-512x512.png
   docs: https://docs.ntfy.sh/install/
+  source: https://github.com/binwiederhier/ntfy
 
 server:
   minimum: starter
