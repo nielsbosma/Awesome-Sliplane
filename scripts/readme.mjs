@@ -29,6 +29,7 @@ function appField(yaml, key) {
 }
 
 const rows = [];
+const toc = [];
 for (const category of readdirSync(join(root, "specs")).sort()) {
   const apps = readdirSync(join(root, "specs", category))
     .filter((f) => f.endsWith(".yaml"))
@@ -38,7 +39,9 @@ for (const category of readdirSync(join(root, "specs")).sort()) {
       return { name: appField(yaml, "name"), description: appField(yaml, "description"), path };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
-  rows.push(`<tr><td colspan="3"><br><b>${titles[category] ?? category}</b></td></tr>`);
+  const title = titles[category] ?? category;
+  toc.push(`[${title}](#${category})`);
+  rows.push(`<tr><td colspan="3"><br><a name="${category}"></a><b>${title}</b></td></tr>`);
   for (const a of apps)
     rows.push(
       `<tr><td width="170"><a href="${DEPLOYER}/?repo=${REPO}/${a.path}">${a.name}</a></td><td>${a.description}</td><td width="190"><a href="${DEPLOYER}/?repo=${REPO}/${a.path}"><img src="${DEPLOYER}/button.svg" alt="Deploy to Sliplane" width="179" height="36"></a></td></tr>`,
@@ -51,6 +54,8 @@ const readme = `# Awesome Sliplane
 One-click deploy specs for open source apps on [Sliplane](https://sliplane.io), using the [Sliplane Deployer](https://github.com/nielsbosma/sliplane-deployer). Each button opens the deployer, which asks a few questions, shows what will be created and what it costs, and deploys the app to your own Sliplane account.
 
 Every spec lives in [specs/](specs), grouped by category. Images are pinned to a release; bump the tag to upgrade.
+
+${toc.join(" · ")}
 
 ${table}
 
