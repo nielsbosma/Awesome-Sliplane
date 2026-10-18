@@ -41,7 +41,7 @@ for (const category of readdirSync(join(root, "specs")).sort()) {
   rows.push(`<tr><td colspan="3"><br><b>${titles[category] ?? category}</b></td></tr>`);
   for (const a of apps)
     rows.push(
-      `<tr><td width="170"><a href="${a.path}">${a.name}</a></td><td>${a.description}</td><td width="190"><a href="${DEPLOYER}/?repo=${REPO}/${a.path}"><img src="${DEPLOYER}/button.svg" alt="Deploy to Sliplane" width="179" height="36"></a></td></tr>`,
+      `<tr><td width="170"><a href="${DEPLOYER}/?repo=${REPO}/${a.path}">${a.name}</a></td><td>${a.description}</td><td width="190"><a href="${DEPLOYER}/?repo=${REPO}/${a.path}"><img src="${DEPLOYER}/button.svg" alt="Deploy to Sliplane" width="179" height="36"></a></td></tr>`,
     );
 }
 const table = `<table>\n<tr><th align="left">App</th><th align="left">What it is</th><th></th></tr>\n${rows.join("\n")}\n</table>`;
