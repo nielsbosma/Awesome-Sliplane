@@ -6,6 +6,7 @@ app:
   description: Privacy-respecting metasearch engine that combines results from many search services without tracking or profiling its users.
   icon: https://raw.githubusercontent.com/searxng/searxng/master/client/simple/src/brand/searxng.svg
   docs: https://docs.searxng.org/admin/installation-docker.html
+  source: https://github.com/searxng/searxng
 
 server:
   minimum: starter

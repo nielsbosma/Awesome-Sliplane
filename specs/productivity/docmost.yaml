@@ -6,6 +6,7 @@ app:
   description: Open-source collaborative wiki and documentation software, an alternative to Confluence and Notion, with real-time editing, spaces, permissions, comments and diagrams.
   icon: https://raw.githubusercontent.com/docmost/docmost/main/apps/client/public/icons/app-icon-512x512.png
   docs: https://docmost.com/docs/installation
+  source: https://github.com/docmost/docmost
 
 server:
   minimum: base

@@ -6,6 +6,7 @@ app:
   description: A self-hosted monitoring tool with status pages and notifications.
   icon: https://raw.githubusercontent.com/louislam/uptime-kuma/master/public/icon.svg
   docs: https://github.com/louislam/uptime-kuma/wiki
+  source: https://github.com/louislam/uptime-kuma
 
 server:
   minimum: starter

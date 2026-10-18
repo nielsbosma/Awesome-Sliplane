@@ -6,6 +6,7 @@ app:
   description: Open source secrets management. Sync secrets and API keys across teams, environments and infrastructure, with versioning, access controls, audit logs and a PKI and SSH certificate manager.
   icon: https://raw.githubusercontent.com/Infisical/infisical/main/frontend/public/images/gradientLogo.svg
   docs: https://infisical.com/docs/self-hosting/deployment-options/docker-compose
+  source: https://github.com/Infisical/infisical
 
 server:
   minimum: medium

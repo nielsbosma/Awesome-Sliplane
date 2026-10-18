@@ -6,6 +6,7 @@ app:
   description: Self-hosted personal finance manager. Track expenses, income, budgets, bills and savings goals across all your accounts, with rules and reports.
   icon: https://raw.githubusercontent.com/firefly-iii/firefly-iii/main/public/android-chrome-512x512.png
   docs: https://docs.firefly-iii.org/how-to/firefly-iii/installation/docker/
+  source: https://github.com/firefly-iii/firefly-iii
 
 server:
   minimum: base

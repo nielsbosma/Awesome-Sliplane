@@ -6,6 +6,7 @@ app:
   description: A free, open-source alternative to Splitwise. Share expenses with friends and family in groups, see who owes whom and settle up, without accounts or ads.
   icon: https://raw.githubusercontent.com/spliit-app/spliit/1.30.0/public/logo/512x512.png
   docs: https://github.com/spliit-app/spliit#run-with-docker-compose
+  source: https://github.com/spliit-app/spliit
 
 server:
   minimum: starter

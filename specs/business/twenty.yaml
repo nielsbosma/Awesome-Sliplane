@@ -6,6 +6,7 @@ app:
   description: Open-source CRM, a modern alternative to Salesforce. Track companies, people and opportunities in customizable objects, views and workflows.
   icon: https://raw.githubusercontent.com/twentyhq/twenty/main/packages/twenty-front/public/images/icons/windows11/Square44x44Logo.scale-400.png
   docs: https://docs.twenty.com/developers/self-host/capabilities/docker-compose
+  source: https://github.com/twentyhq/twenty
 
 server:
   minimum: medium

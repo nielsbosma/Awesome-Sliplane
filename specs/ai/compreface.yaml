@@ -6,6 +6,7 @@ app:
   description: Self-hosted face recognition service with a web UI and REST API for face detection, verification and recognition, plus age, gender and landmark plugins.
   icon: https://raw.githubusercontent.com/exadel-inc/CompreFace/master/ui/src/favicon.ico
   docs: https://github.com/exadel-inc/CompreFace/blob/master/docs/Configuration.md
+  source: https://github.com/exadel-inc/CompreFace
 
 server:
   # The API (Java), admin (Java) and ML core (Python) share one container.

@@ -6,6 +6,7 @@ app:
   description: Fast, typo-tolerant search engine with a RESTful API for adding instant search to apps and sites, including filters, facets and hybrid search.
   icon: https://raw.githubusercontent.com/meilisearch/meilisearch/v1.55.0/assets/logo.svg
   docs: https://www.meilisearch.com/docs/learn/self_hosted/install_meilisearch_locally
+  source: https://github.com/meilisearch/meilisearch
 
 server:
   minimum: base

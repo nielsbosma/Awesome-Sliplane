@@ -6,6 +6,7 @@ app:
   description: Cron job and background task monitoring. Your jobs ping a URL when they run, and Healthchecks alerts you by email, Slack, Telegram and more when they don't.
   icon: https://raw.githubusercontent.com/healthchecks/healthchecks/master/static/img/favicon.svg
   docs: https://healthchecks.io/docs/self_hosted_docker/
+  source: https://github.com/healthchecks/healthchecks
 
 server:
   minimum: starter

@@ -10,6 +10,7 @@ app:
   description: Open-source document signing, an alternative to DocuSign. Upload PDFs, place fields, send them for signature and keep signed documents in your own Postgres.
   icon: https://raw.githubusercontent.com/documenso/documenso/v2.20.0/apps/remix/public/apple-touch-icon.png
   docs: https://docs.documenso.com/docs/self-hosting/deployment/docker
+  source: https://github.com/documenso/documenso
 
 server:
   minimum: base

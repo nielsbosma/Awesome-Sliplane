@@ -12,6 +12,7 @@ app:
   name: Trieve
   description: Search, recommendations and RAG API with hybrid vector and BM25 search, plus a dashboard to manage datasets and API keys.
   docs: https://github.com/devflowinc/trieve#self-hosting
+  source: https://github.com/devflowinc/trieve
 
 server:
   minimum: medium

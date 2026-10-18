@@ -6,6 +6,7 @@ app:
   description: A collection of handy online tools for developers, such as encoders, converters, generators, formatters and network calculators, all running in the browser.
   icon: https://raw.githubusercontent.com/CorentinTh/it-tools/main/public/android-chrome-192x192.png
   docs: https://github.com/CorentinTh/it-tools
+  source: https://github.com/CorentinTh/it-tools
 
 server:
   minimum: starter

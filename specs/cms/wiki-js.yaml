@@ -6,6 +6,7 @@ app:
   description: Modern open source wiki with a Markdown and visual editor, page history, search, granular permissions and many sign-in options, backed by Postgres.
   icon: https://raw.githubusercontent.com/requarks/wiki/v2.5.314/client/static/svg/logo-wikijs.svg
   docs: https://docs.requarks.io/install/docker
+  source: https://github.com/requarks/wiki
 
 server:
   minimum: base

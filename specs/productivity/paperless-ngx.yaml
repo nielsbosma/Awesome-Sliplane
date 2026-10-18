@@ -6,6 +6,7 @@ app:
   description: Document management system that scans, OCRs, indexes and tags your paper documents so you can search and archive them, with optional AI suggestions.
   icon: https://raw.githubusercontent.com/paperless-ngx/paperless-ngx/v3.3.2/docs/assets/favicon.png
   docs: https://docs.paperless-ngx.com/setup/
+  source: https://github.com/paperless-ngx/paperless-ngx
 
 server:
   minimum: base

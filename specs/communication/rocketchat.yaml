@@ -6,6 +6,7 @@ app:
   description: Open source team chat with channels, direct messages, threads, video calls, file sharing and integrations, hosted on your own server.
   icon: https://raw.githubusercontent.com/RocketChat/Rocket.Chat.Artwork/master/Logos/2020/png/icon-red.png
   docs: https://docs.rocket.chat/docs/deploy-with-docker-docker-compose
+  source: https://github.com/RocketChat/Rocket.Chat
 
 server:
   minimum: base

@@ -6,6 +6,7 @@ app:
   description: Open source localization platform with in-context translation, translation memory, machine translation and SDKs for React, Angular, Vue and more.
   icon: https://raw.githubusercontent.com/tolgee/tolgee-platform/main/webapp/public/favicon.svg
   docs: https://docs.tolgee.io/platform/self_hosting/getting_started
+  source: https://github.com/tolgee/tolgee-platform
 
 server:
   minimum: medium

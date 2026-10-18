@@ -10,6 +10,7 @@ app:
   description: Open source dashboards and alerting for metrics, logs and traces from Prometheus, Loki, Postgres, InfluxDB and many other data sources.
   icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
   docs: https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/
+  source: https://github.com/grafana/grafana
 
 server:
   minimum: starter

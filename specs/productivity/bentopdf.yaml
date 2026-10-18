@@ -6,6 +6,7 @@ app:
   description: Privacy-first PDF toolkit to merge, split, compress, convert, sign and edit PDFs. Everything runs in the browser, so files never leave the visitor's device.
   icon: https://raw.githubusercontent.com/alam00000/bentopdf/main/public/images/favicon-no-bg.svg
   docs: https://github.com/alam00000/bentopdf#readme
+  source: https://github.com/alam00000/bentopdf
 
 server:
   minimum: starter

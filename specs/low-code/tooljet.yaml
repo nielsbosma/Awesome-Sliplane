@@ -6,6 +6,7 @@ app:
   description: Low-code platform for building internal tools, dashboards and workflows on top of your databases and APIs, with a built-in no-code database.
   icon: https://github.com/ToolJet.png
   docs: https://docs.tooljet.com/docs/setup/docker
+  source: https://github.com/ToolJet/ToolJet
 
 server:
   minimum: medium

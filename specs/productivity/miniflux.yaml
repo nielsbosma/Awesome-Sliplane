@@ -6,6 +6,7 @@ app:
   description: Minimalist and opinionated feed reader for RSS, Atom and JSON feeds, with a fast keyboard-driven UI, full-text fetching and Fever and Google Reader APIs for mobile apps.
   icon: https://raw.githubusercontent.com/miniflux/v2/main/internal/ui/static/bin/icon-512.png
   docs: https://miniflux.app/docs/docker.html
+  source: https://github.com/miniflux/v2
 
 server:
   minimum: starter

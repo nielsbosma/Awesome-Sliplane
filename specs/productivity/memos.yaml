@@ -6,6 +6,7 @@ app:
   description: Lightweight, privacy-first note-taking service for quick Markdown notes, tags, attachments and a timeline you can share or keep private.
   icon: https://raw.githubusercontent.com/usememos/memos/main/web/public/logo.webp
   docs: https://usememos.com/docs/install
+  source: https://github.com/usememos/memos
 
 server:
   minimum: starter

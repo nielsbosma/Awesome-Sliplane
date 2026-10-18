@@ -6,6 +6,7 @@ app:
   description: Simple, fast, privacy-focused web analytics without cookies. A lightweight alternative to Google Analytics, backed by Postgres.
   icon: https://raw.githubusercontent.com/umami-software/umami/master/public/apple-touch-icon.png
   docs: https://docs.umami.is/docs/install
+  source: https://github.com/umami-software/umami
 
 server:
   minimum: starter

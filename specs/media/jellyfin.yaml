@@ -6,6 +6,7 @@ app:
   description: Free software media server that streams your movies, shows, music and photos to web, mobile and TV apps, with no accounts or tracking.
   icon: https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/icon-transparent.svg
   docs: https://jellyfin.org/docs/general/installation/container
+  source: https://github.com/jellyfin/jellyfin
 
 server:
   minimum: base

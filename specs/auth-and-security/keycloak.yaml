@@ -6,6 +6,7 @@ app:
   description: Open source identity and access management with single sign-on over OpenID Connect and SAML, social login, user federation, MFA and fine-grained authorization.
   icon: https://raw.githubusercontent.com/keycloak/keycloak-misc/main/logo/icon.svg
   docs: https://www.keycloak.org/server/containers
+  source: https://github.com/keycloak/keycloak
 
 server:
   minimum: base

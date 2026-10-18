@@ -6,6 +6,7 @@ app:
   description: Open-source social media outreach automation for LinkedIn and X. Build workflows that send connection requests and follow-ups, driven by an API for n8n, Make or Zapier.
   icon: https://raw.githubusercontent.com/growchief/growchief/main/apps/frontend/public/logo.svg
   docs: https://docs.growchief.com
+  source: https://github.com/growchief/growchief
 
 server:
   minimum: medium

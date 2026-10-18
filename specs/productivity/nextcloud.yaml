@@ -6,6 +6,7 @@ app:
   description: Self-hosted file sync and sharing with calendars, contacts, office documents and hundreds of apps. Backed by Postgres and Redis.
   icon: https://raw.githubusercontent.com/nextcloud/server/master/core/img/logo/logo.png
   docs: https://github.com/nextcloud/docker
+  source: https://github.com/nextcloud/server
 
 server:
   minimum: base

@@ -9,6 +9,7 @@ app:
   description: Open-source marketing automation for email campaigns, segments, landing pages, forms and lead scoring.
   icon: https://raw.githubusercontent.com/mautic/mautic/7.x/app/assets/images/mautic_logo_db200.png
   docs: https://github.com/mautic/docker-mautic
+  source: https://github.com/mautic/mautic
 
 server:
   minimum: base

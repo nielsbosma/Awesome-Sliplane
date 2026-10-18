@@ -6,6 +6,7 @@ app:
   description: Open source business automation, an alternative to Zapier. Connect services like Slack, GitHub and Google Sheets in flows that run on your own server.
   icon: https://avatars.githubusercontent.com/automatisch
   docs: https://automatisch.io/docs/guide/installation
+  source: https://github.com/automatisch/automatisch
 
 server:
   minimum: base

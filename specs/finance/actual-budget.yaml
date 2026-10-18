@@ -6,6 +6,7 @@ app:
   description: Local-first personal finance app built on envelope budgeting. The sync server keeps your budgets in sync across devices, with optional end-to-end encryption.
   icon: https://raw.githubusercontent.com/actualbudget/actual/master/packages/desktop-client/public/maskable-512x512.png
   docs: https://actualbudget.org/docs/install/docker
+  source: https://github.com/actualbudget/actual
 
 server:
   minimum: starter

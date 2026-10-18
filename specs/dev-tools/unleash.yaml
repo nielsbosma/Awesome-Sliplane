@@ -6,6 +6,7 @@ app:
   description: Open source feature flag management. Roll out features gradually, run A/B tests and kill switches, with SDKs for most languages and frameworks.
   icon: https://raw.githubusercontent.com/Unleash/unleash/main/.github/logo.png
   docs: https://docs.getunleash.io/using-unleash/deploy/getting-started
+  source: https://github.com/Unleash/unleash
 
 server:
   minimum: base

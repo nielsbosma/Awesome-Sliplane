@@ -6,6 +6,7 @@ app:
   description: A light, fast ChatGPT-style web client for OpenAI, Anthropic and other models, protected by an access password. Chats are stored in the browser.
   icon: https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat/main/public/android-chrome-192x192.png
   docs: https://github.com/ChatGPTNextWeb/NextChat#environment-variables
+  source: https://github.com/ChatGPTNextWeb/NextChat
 
 server:
   minimum: starter

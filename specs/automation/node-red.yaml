@@ -6,6 +6,7 @@ app:
   description: Low-code programming for event-driven applications. Wire together APIs, devices and online services in a browser-based flow editor with thousands of community nodes.
   icon: https://raw.githubusercontent.com/node-red/node-red/master/packages/node_modules/@node-red/editor-client/src/images/node-red-icon.svg
   docs: https://nodered.org/docs/getting-started/docker
+  source: https://github.com/node-red/node-red
 
 server:
   minimum: starter

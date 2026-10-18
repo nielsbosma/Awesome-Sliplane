@@ -6,6 +6,7 @@ app:
   description: Self-hosted newsletter and mailing list manager with subscriber lists, segmentation, campaign templates, analytics and a transactional mail API.
   icon: https://raw.githubusercontent.com/knadh/listmonk/v6.2.0/static/public/static/favicon.png
   docs: https://listmonk.app/docs/installation/
+  source: https://github.com/knadh/listmonk
 
 server:
   minimum: starter

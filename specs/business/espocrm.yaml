@@ -6,6 +6,7 @@ app:
   description: Open-source CRM for contacts, accounts, leads, opportunities, cases, email and calendars, with a customizable entity manager, workflows and a REST API.
   icon: https://raw.githubusercontent.com/espocrm/espocrm/master/client/img/favicon.svg
   docs: https://docs.espocrm.com/administration/docker/installation/
+  source: https://github.com/espocrm/espocrm
 
 server:
   minimum: base
