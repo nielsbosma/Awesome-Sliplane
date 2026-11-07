@@ -1,0 +1,4 @@
+# OpenSign keeps its spec in its own repository; the README and the deployer read the app from there.
+link: https://github.com/nielsbosma/OpenSign/blob/main/sliplane.yaml
+category: Business
+icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/opensign.svg

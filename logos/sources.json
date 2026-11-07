@@ -298,5 +298,8 @@
   },
   "searxng": {
     "src": "searx/static/themes/simple/img/favicon.svg"
+  },
+  "opensign": {
+    "src": "web/public/favicon.svg"
   }
 }

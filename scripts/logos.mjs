@@ -4,6 +4,7 @@
 import { readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { appField, readEntry } from "./spec.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const RAW = "https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main";
@@ -12,11 +13,6 @@ const RADIUS = 56;
 const sources = JSON.parse(readFileSync(join(root, "logos", "sources.json"), "utf8"));
 const only = process.argv.slice(2);
 
-function appField(yaml, key) {
-  const block = /^app:\n((?: {2}.*\n?)+)/m.exec(yaml)?.[1] ?? "";
-  const value = new RegExp(`^ {2}${key}: (.*)$`, "m").exec(block)?.[1]?.trim() ?? "";
-  return value.replace(/^(["'])(.*)\1$/, "$2");
-}
 
 function sourceUrl(entry, repo) {
   if (/^https?:\/\//.test(entry.src)) return entry.src;
@@ -107,19 +103,22 @@ for (const category of readdirSync(join(root, "specs")).sort()) {
     const path = join(root, "specs", category, file);
     const original = readFileSync(path, "utf8");
     const eol = original.includes("\r\n") ? "\r\n" : "\n";
-    let yaml = original.replace(/\r\n/g, "\n");
-    const name = appField(yaml, "name");
+    let entry;
     try {
-      const { svg, kind, url } = await build(slug, name, appField(yaml, "source"));
+      entry = await readEntry(original);
+      const { svg, kind, url } = await build(slug, appField(entry.spec, "name"), entry.source);
       writeFileSync(join(root, "logos", `${slug}.svg`), svg);
       console.log(`${slug.padEnd(16)} ${kind.padEnd(6)} ${url ?? ""}`);
     } catch (e) {
       console.error(`${slug}: ${e.message}`);
       process.exitCode = 1;
-      if (!existsSync(join(root, "logos", `${slug}.svg`))) continue;
+      if (!entry || !existsSync(join(root, "logos", `${slug}.svg`))) continue;
     }
     const icon = `${RAW}/logos/${slug}.svg`;
-    yaml = /^ {2}icon: .*$/m.test(yaml)
+    let yaml = entry.yaml;
+    // A link carries its own top-level icon; a spec has app.icon.
+    if (entry.link) yaml = /^icon: .*$/m.test(yaml) ? yaml.replace(/^icon: .*$/m, `icon: ${icon}`) : `${yaml.trimEnd()}\nicon: ${icon}\n`;
+    else yaml = /^ {2}icon: .*$/m.test(yaml)
       ? yaml.replace(/^ {2}icon: .*$/m, `  icon: ${icon}`)
       : yaml.replace(/^( {2}description: .*\n)/m, `$1  icon: ${icon}\n`);
     writeFileSync(path, yaml.replace(/\n/g, eol));
