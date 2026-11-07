@@ -4,7 +4,7 @@ version: 1
 app:
   name: Hasura GraphQL Engine
   description: Instant realtime GraphQL and REST APIs on Postgres, with permissions, event triggers, actions and a web console.
-  icon: https://raw.githubusercontent.com/hasura/graphql-engine/v2.51.0/docs/static/img/favicon.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/hasura.svg
   docs: https://hasura.io/docs/2.0/deployment/deployment-guides/docker/
   source: https://github.com/hasura/graphql-engine
 

@@ -7,7 +7,7 @@ version: 1
 app:
   name: Mealie
   description: Self-hosted recipe manager and meal planner. Import recipes from any website, plan meals, build shopping lists and share them with your household.
-  icon: https://raw.githubusercontent.com/mealie-recipes/mealie/v3.29.0/frontend/public/icons/android-chrome-512x512.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/mealie.svg
   docs: https://docs.mealie.io/documentation/getting-started/installation/postgres/
   source: https://github.com/mealie-recipes/mealie
 

@@ -4,7 +4,7 @@ version: 1
 app:
   name: Mailpit
   description: Email testing tool. Catches the mail your apps send over SMTP and shows it in a web inbox with HTML checks, link checks and an API.
-  icon: https://raw.githubusercontent.com/axllent/mailpit/v1.31.6/server/ui/mailpit.svg
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/mailpit.svg
   docs: https://github.com/axllent/mailpit
   source: https://github.com/axllent/mailpit
 

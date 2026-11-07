@@ -4,7 +4,7 @@ version: 1
 app:
   name: Open WebUI
   description: Self-hosted AI chat interface for OpenAI-compatible and Anthropic models, with multiple users, document chat (RAG), web search, tools and a model workspace.
-  icon: https://raw.githubusercontent.com/open-webui/open-webui/main/static/static/apple-touch-icon.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/open-webui.svg
   docs: https://docs.openwebui.com/reference/env-configuration
   source: https://github.com/open-webui/open-webui
 

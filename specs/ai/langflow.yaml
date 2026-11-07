@@ -4,7 +4,7 @@ version: 1
 app:
   name: Langflow
   description: Visual builder for AI agents, RAG pipelines and MCP servers. Design flows in the browser, test them in the playground and serve them as APIs.
-  icon: https://raw.githubusercontent.com/langflow-ai/langflow/main/docs/static/img/langflow-icon-black-transparent.svg
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/langflow.svg
   docs: https://docs.langflow.org/deployment-docker
   source: https://github.com/langflow-ai/langflow
 

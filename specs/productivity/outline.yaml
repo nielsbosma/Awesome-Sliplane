@@ -8,7 +8,7 @@ version: 1
 app:
   name: Outline
   description: Fast, collaborative knowledge base for teams, with real-time editing, Markdown shortcuts, nested documents, search and public sharing.
-  icon: https://raw.githubusercontent.com/outline/outline/main/public/images/icon-512.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/outline.svg
   docs: https://docs.getoutline.com/s/hosting/doc/docker-7pfeLP5a8t
   source: https://github.com/outline/outline
 

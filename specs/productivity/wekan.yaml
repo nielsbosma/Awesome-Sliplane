@@ -4,7 +4,7 @@ version: 1
 app:
   name: WeKan
   description: Open-source kanban boards with swimlanes, checklists, labels, due dates and a REST API. A self-hosted alternative to Trello, backed by MongoDB.
-  icon: https://raw.githubusercontent.com/wekan/wekan/main/public/android-chrome-192x192.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/wekan.svg
   docs: https://github.com/wekan/wekan/tree/main/docs
   source: https://github.com/wekan/wekan
 

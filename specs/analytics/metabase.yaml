@@ -4,7 +4,7 @@ version: 1
 app:
   name: Metabase
   description: Open source business intelligence. Connect your databases, ask questions without SQL, and share dashboards with your team. Uses Postgres as its application database.
-  icon: https://raw.githubusercontent.com/metabase/metabase/master/resources/frontend_client/app/assets/img/apple-touch-icon.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/metabase.svg
   docs: https://www.metabase.com/docs/latest/installation-and-operation/running-metabase-on-docker
   source: https://github.com/metabase/metabase
 

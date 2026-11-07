@@ -4,7 +4,7 @@ version: 1
 app:
   name: code-server
   description: VS Code in the browser. Code, run a terminal and install extensions on your own server from any device.
-  icon: https://raw.githubusercontent.com/coder/code-server/v4.141.0/src/browser/media/pwa-icon-192.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/code-server.svg
   docs: https://coder.com/docs/code-server/install
   source: https://github.com/coder/code-server
 

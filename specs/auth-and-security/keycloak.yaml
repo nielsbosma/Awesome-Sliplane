@@ -4,7 +4,7 @@ version: 1
 app:
   name: Keycloak
   description: Open source identity and access management with single sign-on over OpenID Connect and SAML, social login, user federation, MFA and fine-grained authorization.
-  icon: https://raw.githubusercontent.com/keycloak/keycloak-misc/main/logo/icon.svg
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/keycloak.svg
   docs: https://www.keycloak.org/server/containers
   source: https://github.com/keycloak/keycloak
 

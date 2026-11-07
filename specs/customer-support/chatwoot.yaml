@@ -4,7 +4,7 @@ version: 1
 app:
   name: Chatwoot
   description: Open-source customer support platform. Answer live chat, email, WhatsApp and social messages from one shared inbox, with a help center, automations and reports.
-  icon: https://raw.githubusercontent.com/chatwoot/chatwoot/v4.18.0/public/brand-assets/logo_thumbnail.svg
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/chatwoot.svg
   docs: https://developers.chatwoot.com/self-hosted/deployment/docker
   source: https://github.com/chatwoot/chatwoot
 

@@ -4,7 +4,7 @@ version: 1
 app:
   name: Redash
   description: Connect to your databases and APIs, query them with SQL, and build visualizations, dashboards and alerts to share with your team.
-  icon: https://raw.githubusercontent.com/getredash/redash/master/client/app/assets/images/favicon-96x96.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/redash.svg
   docs: https://redash.io/help/open-source/setup/
   source: https://github.com/getredash/redash
 

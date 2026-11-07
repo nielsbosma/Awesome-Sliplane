@@ -4,7 +4,7 @@ version: 1
 app:
   name: SuperTokens
   description: Open source authentication core with email/password, passwordless, social login, sessions, MFA and multi-tenancy. Your backend talks to it through the SuperTokens SDKs.
-  icon: https://raw.githubusercontent.com/supertokens/supertokens-logo/master/images/Artboard%20%E2%80%93%2027%402x.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/supertokens.svg
   docs: https://supertokens.com/docs/deployment/self-host-supertokens
   source: https://github.com/supertokens/supertokens-core
 

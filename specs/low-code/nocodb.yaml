@@ -4,7 +4,7 @@ version: 1
 app:
   name: NocoDB
   description: Open source Airtable alternative that turns a database into a smart spreadsheet, with grid, kanban, gallery and form views, plus REST APIs.
-  icon: https://raw.githubusercontent.com/nocodb/nocodb/develop/packages/nc-gui/assets/img/icons/512x512.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/nocodb.svg
   docs: https://nocodb.com/docs/self-hosting/installation/docker
   source: https://github.com/nocodb/nocodb
 

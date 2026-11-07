@@ -4,7 +4,7 @@ version: 1
 app:
   name: Novu
   description: Open source notification infrastructure for email, SMS, push, chat and in-app inbox notifications, with a workflow editor and API.
-  icon: https://github.com/novuhq.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/novu.svg
   docs: https://docs.novu.co/community/self-hosting-novu/deploy-with-docker
   source: https://github.com/novuhq/novu
 

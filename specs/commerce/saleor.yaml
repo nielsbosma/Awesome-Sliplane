@@ -4,7 +4,7 @@ version: 1
 app:
   name: Saleor
   description: Headless, GraphQL-first commerce platform with a React dashboard for managing products, orders, customers and channels.
-  icon: https://github.com/saleor.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/saleor.svg
   docs: https://docs.saleor.io/setup/docker-compose
   source: https://github.com/saleor/saleor
 

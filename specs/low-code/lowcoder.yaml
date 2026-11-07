@@ -4,7 +4,7 @@ version: 1
 app:
   name: Lowcoder
   description: Open-source low-code platform for building internal tools, web apps, meeting apps and modules with a drag-and-drop editor.
-  icon: https://raw.githubusercontent.com/lowcoder-org/lowcoder/main/client/packages/lowcoder/src/assets/images/logo.svg
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/lowcoder.svg
   docs: https://docs.lowcoder.cloud/lowcoder-documentation/setup-and-run/self-hosting
   source: https://github.com/lowcoder-org/lowcoder
 

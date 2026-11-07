@@ -1,0 +1,302 @@
+{
+  "anythingllm": {
+    "src": "frontend/public/favicon.png"
+  },
+  "compreface": {
+    "src": "ui/src/assets/img/face-recognition-logo-mobile.svg"
+  },
+  "flowise": {
+    "src": "packages/ui/public/logo192.png"
+  },
+  "langflow": {
+    "src": "src/frontend/src/assets/LangflowLogoColor.svg"
+  },
+  "langfuse": {
+    "src": "web/public/icon.svg"
+  },
+  "librechat": {
+    "src": "client/public/assets/logo.svg"
+  },
+  "litellm": {
+    "src": "litellm/proxy/logo_monogram.png"
+  },
+  "lobehub": {
+    "src": "public/app-icons/icon-512x512.png"
+  },
+  "nextchat": {
+    "src": "app/icons/logo.svg"
+  },
+  "open-webui": {
+    "src": "static/static/favicon.svg"
+  },
+  "trieve": {
+    "src": "website/public/favicon.svg"
+  },
+  "matomo": {
+    "src": "plugins/CoreHome/images/applogo_732.png"
+  },
+  "metabase": {
+    "src": "resources/frontend_client/app/assets/img/logo.svg"
+  },
+  "plausible": {
+    "src": "priv/static/images/ee/favicon.svg"
+  },
+  "redash": {
+    "src": "website/src/assets/redash-logo.svg"
+  },
+  "rudderstack": {
+    "src": "https://github.com/rudderlabs.png?size=512"
+  },
+  "umami": {
+    "src": "src/assets/logo.svg"
+  },
+  "authentik": {
+    "src": "https://raw.githubusercontent.com/goauthentik/authentik/version/2025.2.0/web/icons/icon.svg"
+  },
+  "hanko": {
+    "src": "quickstart/public/assets/img/Favicon_256x256.png"
+  },
+  "infisical": {
+    "src": "https://github.com/Infisical.png?size=512"
+  },
+  "keycloak": {
+    "src": "js/apps/admin-ui/public/icon.svg"
+  },
+  "logto": {
+    "src": "https://github.com/logto-io.png?size=512"
+  },
+  "pocket-id": {
+    "src": "frontend/static/img/static-logo.svg"
+  },
+  "supertokens": {
+    "src": "https://github.com/supertokens.png?size=512"
+  },
+  "zitadel": {
+    "src": "console/src/assets/images/zitadel-logo-solo-dark.svg"
+  },
+  "activepieces": {
+    "src": "packages/web/public/logo.svg"
+  },
+  "automatisch": {
+    "src": "https://github.com/automatisch.png?size=512"
+  },
+  "kestra": {
+    "src": "ui/src/assets/icon.svg"
+  },
+  "n8n": {
+    "src": "packages/frontend/@n8n/design-system/src/components/N8nLogo/logo-icon.svg"
+  },
+  "node-red": {
+    "src": "packages/node_modules/@node-red/editor-client/src/images/node-red-icon.svg"
+  },
+  "dolibarr": {
+    "src": "htdocs/theme/dolibarr_256x256_color.png"
+  },
+  "erpnext": {
+    "src": "erpnext/public/images/erpnext-logo.svg"
+  },
+  "espocrm": {
+    "src": "client/img/favicon.svg"
+  },
+  "invoiceshelf": {
+    "src": "resources/static/img/logo-mark.svg"
+  },
+  "odoo": {
+    "src": "addons/web/static/img/odoo-icon.svg"
+  },
+  "twenty": {
+    "src": "packages/twenty-docs/logo.svg"
+  },
+  "directus": {
+    "src": "app/src/assets/logo.svg",
+    "bg": "#6644FF"
+  },
+  "ghost": {
+    "src": "https://github.com/TryGhost.png?size=512"
+  },
+  "wiki-js": {
+    "src": "frontend/public/_assets/logo-wikijs.svg"
+  },
+  "wordpress": {
+    "src": "https://raw.githubusercontent.com/WordPress/WordPress/master/wp-admin/images/wordpress-logo.svg"
+  },
+  "prestashop": {
+    "src": "https://github.com/PrestaShop.png?size=512"
+  },
+  "pretix": {
+    "src": "res/icon.svg"
+  },
+  "saleor": {
+    "src": "https://github.com/saleor.png?size=512"
+  },
+  "mattermost": {
+    "src": "docs/site/static/img/brand/icon-denim.svg"
+  },
+  "ntfy": {
+    "src": "web/src/img/ntfy-filled.svg"
+  },
+  "rocketchat": {
+    "src": "apps/meteor/public/images/logo/icon.svg"
+  },
+  "chatwoot": {
+    "src": "public/brand-assets/logo_thumbnail.svg"
+  },
+  "zammad": {
+    "src": "public/assets/images/icons/logo.svg"
+  },
+  "code-server": {
+    "src": "src/browser/media/favicon.svg"
+  },
+  "gitea": {
+    "src": "assets/logo.svg"
+  },
+  "glitchtip": {
+    "src": "https://gitlab.com/glitchtip/glitchtip-frontend/-/raw/master/src/assets/images/glitchtip-logo-collasped.svg"
+  },
+  "hasura": {
+    "src": "assets/brand/hasura_icon_colour.svg"
+  },
+  "hoppscotch": {
+    "src": "packages/hoppscotch-common/public/logo.svg"
+  },
+  "it-tools": {
+    "src": "public/android-chrome-192x192.png"
+  },
+  "mailpit": {
+    "src": "server/ui/favicon.svg"
+  },
+  "novu": {
+    "src": "apps/dashboard/public/favicon.svg"
+  },
+  "tolgee": {
+    "src": "webapp/public/favicon.svg"
+  },
+  "unleash": {
+    "src": "frontend/src/assets/icons/logoBg.svg"
+  },
+  "actual-budget": {
+    "src": "packages/component-library/src/icons/logo/logo.svg",
+    "bg": "#8719E0"
+  },
+  "firefly-iii": {
+    "src": "public/maskable-icon.svg"
+  },
+  "appsmith": {
+    "src": "app/client/src/assets/images/appsmith_logo_square.png"
+  },
+  "baserow": {
+    "src": "web-frontend/modules/core/static/img/baserow-icon.svg"
+  },
+  "lowcoder": {
+    "src": "client/packages/lowcoder/src/assets/images/Lowcoder-Logo.svg"
+  },
+  "nocodb": {
+    "src": "packages/nc-gui/assets/img/brand/nocodb-logo.svg"
+  },
+  "tooljet": {
+    "src": "docs/static/img/Icon.svg"
+  },
+  "growchief": {
+    "src": "apps/frontend/public/logo.svg"
+  },
+  "listmonk": {
+    "src": "static/public/static/favicon.png"
+  },
+  "mautic": {
+    "src": "https://github.com/mautic.png?size=512"
+  },
+  "postiz": {
+    "src": "apps/frontend/public/logo.svg"
+  },
+  "jellyfin": {
+    "src": "https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/icon-transparent.svg"
+  },
+  "peertube": {
+    "src": "client/src/assets/images/logo.svg"
+  },
+  "grafana": {
+    "src": "public/img/grafana_icon.svg"
+  },
+  "healthchecks": {
+    "src": "static/img/favicon.svg"
+  },
+  "prometheus": {
+    "src": "documentation/images/prometheus-logo.svg"
+  },
+  "uptime-kuma": {
+    "src": "public/icon.svg"
+  },
+  "appflowy": {
+    "src": "frontend/resources/flowy_icons/40x/app_logo.svg"
+  },
+  "bentopdf": {
+    "src": "public/images/favicon-no-bg.svg"
+  },
+  "cal-com": {
+    "src": "apps/web/public/cal-com-icon.svg"
+  },
+  "collabora": {
+    "src": "https://github.com/CollaboraOnline.png?size=512"
+  },
+  "docmost": {
+    "src": "apps/client/public/icons/app-icon-512x512.png"
+  },
+  "documenso": {
+    "src": "apps/remix/public/apple-touch-icon.png"
+  },
+  "excalidraw": {
+    "src": "public/favicon.svg"
+  },
+  "hedgedoc": {
+    "src": "frontend/src/components/common/hedge-doc-logo/logo_color.svg"
+  },
+  "linkwarden": {
+    "src": "assets/logo.png"
+  },
+  "mealie": {
+    "src": "frontend/public/icons/android-chrome-512x512.png"
+  },
+  "memos": {
+    "src": "web/public/logo.svg"
+  },
+  "miniflux": {
+    "src": "internal/ui/static/bin/icon.svg"
+  },
+  "nextcloud": {
+    "src": "core/img/logo/logo.svg",
+    "bg": "#0082C9"
+  },
+  "onlyoffice": {
+    "src": "https://github.com/ONLYOFFICE.png?size=512"
+  },
+  "outline": {
+    "src": "public/images/icon-512.png"
+  },
+  "paperless-ngx": {
+    "src": "docs/assets/logo_leaf.svg"
+  },
+  "penpot": {
+    "src": "frontend/resources/images/favicon.svg"
+  },
+  "plane": {
+    "src": "apps/web/app/assets/favicon/apple-touch-icon.png"
+  },
+  "spliit": {
+    "src": "src/app/icon.svg"
+  },
+  "stirling-pdf": {
+    "src": "app/core/src/main/resources/static/favicon.svg"
+  },
+  "vikunja": {
+    "src": "frontend/src/assets/logo.svg"
+  },
+  "wekan": {
+    "src": "public/android-chrome-192x192.png"
+  },
+  "meilisearch": {
+    "src": "assets/logo.svg"
+  },
+  "searxng": {
+    "src": "searx/static/themes/simple/img/favicon.svg"
+  }
+}

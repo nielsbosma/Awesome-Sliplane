@@ -1,9 +1,10 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const REPO = "https://github.com/nielsbosma/awesome-sliplane";
 const DEPLOYER = "https://sliplane.opendeploy.cloud";
-const root = new URL("..", import.meta.url).pathname;
+const root = fileURLToPath(new URL("..", import.meta.url));
 
 const titles = {
   ai: "AI",
@@ -39,7 +40,7 @@ for (const category of readdirSync(join(root, "specs")).sort()) {
     .map((file) => {
       const yaml = readFileSync(join(root, "specs", category, file), "utf8");
       const path = `specs/${category}/${file}`;
-      return { name: appField(yaml, "name"), description: appField(yaml, "description"), path };
+      return { name: appField(yaml, "name"), description: appField(yaml, "description"), path, logo: `logos/${file.replace(/\.yaml$/, "")}.svg` };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
   const title = titles[category] ?? category;
@@ -47,7 +48,7 @@ for (const category of readdirSync(join(root, "specs")).sort()) {
   rows.push(`<tr><td colspan="3"><br><a name="${category}"></a><b>${title}</b></td></tr>`);
   for (const a of apps)
     rows.push(
-      `<tr><td width="170"><a href="${DEPLOYER}/?repo=${REPO}/${a.path}">${a.name}</a></td><td>${a.description}</td><td width="190"><a href="${DEPLOYER}/?repo=${REPO}/${a.path}"><img src="${DEPLOYER}/button.svg" alt="Deploy to Sliplane" width="179" height="36"></a></td></tr>`,
+      `<tr><td width="210"><img src="${a.logo}" alt="" width="28" height="28" align="absmiddle">&nbsp;&nbsp;<a href="${DEPLOYER}/?repo=${REPO}/${a.path}">${a.name}</a></td><td>${a.description}</td><td width="190"><a href="${DEPLOYER}/?repo=${REPO}/${a.path}"><img src="${DEPLOYER}/button.svg" alt="Deploy to Sliplane" width="179" height="36"></a></td></tr>`,
     );
 }
 const table = `<table>\n<tr><th align="left">App</th><th align="left">What it is</th><th></th></tr>\n${rows.join("\n")}\n</table>`;
@@ -66,7 +67,8 @@ ${table}
 
 1. Add \`specs/<category>/<app>.yaml\` (see the [spec reference](https://github.com/nielsbosma/sliplane-deployer#sliplaneyaml)).
 2. Check it from a [deployer](https://github.com/nielsbosma/sliplane-deployer) checkout with \`node packages/cli/src/bin.ts lint <path to the spec>\`.
-3. Run \`node scripts/readme.mjs\` to update this list.
+3. Add its logo to [logos/sources.json](logos/sources.json) and run \`node scripts/logos.mjs <app>\` (see [logos/README.md](logos/README.md)).
+4. Run \`node scripts/readme.mjs\` to update this list.
 `;
 
 writeFileSync(join(root, "README.md"), readme);
