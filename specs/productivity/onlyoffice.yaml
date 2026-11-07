@@ -9,7 +9,7 @@ x-upstream: https://github.com/ONLYOFFICE/Docker-DocumentServer
 app:
   name: ONLYOFFICE Docs
   description: Online editors for documents, spreadsheets and presentations with real-time co-editing. Connect it to Nextcloud, Seafile, Moodle and similar apps, which open files in it.
-  icon: https://raw.githubusercontent.com/ONLYOFFICE/onlyoffice-nextcloud/master/img/app.svg
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/onlyoffice.svg
   docs: https://helpcenter.onlyoffice.com/docs/installation/docs-community-install-docker.aspx
   source: https://github.com/ONLYOFFICE/DocumentServer
 

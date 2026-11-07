@@ -4,7 +4,7 @@ version: 1
 app:
   name: Mattermost
   description: Open-source team chat with channels, threads, file sharing, integrations and plugins. A self-hosted alternative to Slack, backed by Postgres.
-  icon: https://raw.githubusercontent.com/mattermost/mattermost/master/webapp/channels/src/images/favicon/android-chrome-192x192.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/mattermost.svg
   docs: https://docs.mattermost.com/deployment-guide/server/deploy-containers.html
   source: https://github.com/mattermost/mattermost
 

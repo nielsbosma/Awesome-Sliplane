@@ -4,6 +4,7 @@ version: 1
 app:
   name: Collabora Online
   description: LibreOffice-based online editors for documents, spreadsheets and presentations with real-time co-editing. Connect it to Nextcloud, ownCloud, Seafile and other WOPI hosts, which open files in it.
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/collabora.svg
   docs: https://sdk.collaboraonline.com/docs/installation/CODE_Docker_image.html
   source: https://github.com/CollaboraOnline/online
 

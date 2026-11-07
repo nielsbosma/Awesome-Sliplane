@@ -4,7 +4,7 @@ version: 1
 app:
   name: Nextcloud
   description: Self-hosted file sync and sharing with calendars, contacts, office documents and hundreds of apps. Backed by Postgres and Redis.
-  icon: https://raw.githubusercontent.com/nextcloud/server/master/core/img/logo/logo.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/nextcloud.svg
   docs: https://github.com/nextcloud/docker
   source: https://github.com/nextcloud/server
 

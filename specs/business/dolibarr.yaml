@@ -4,7 +4,7 @@ version: 1
 app:
   name: Dolibarr
   description: Open-source ERP and CRM for small businesses, with third parties, proposals, orders, invoices, stock, projects, HR and accounting modules.
-  icon: https://raw.githubusercontent.com/Dolibarr/dolibarr/develop/htdocs/theme/dolibarr_256x256_color.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/dolibarr.svg
   docs: https://hub.docker.com/r/dolibarr/dolibarr
   source: https://github.com/Dolibarr/dolibarr
 

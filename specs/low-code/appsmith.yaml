@@ -4,7 +4,7 @@ version: 1
 app:
   name: Appsmith
   description: Low-code platform for building internal tools, admin panels and dashboards on top of your databases and APIs.
-  icon: https://raw.githubusercontent.com/appsmithorg/appsmith/release/app/client/src/assets/images/appsmith_logo_square.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/appsmith.svg
   docs: https://docs.appsmith.com/getting-started/setup/installation-guides/docker
   source: https://github.com/appsmithorg/appsmith
 

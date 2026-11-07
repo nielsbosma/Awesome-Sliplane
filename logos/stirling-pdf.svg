@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256" height="256" viewBox="0 0 256 256">
+<title>Stirling-PDF</title>
+<rect x="0.5" y="0.5" width="255" height="255" rx="56" fill="#ffffff" stroke="#0f172a" stroke-opacity="0.12"/>
+<svg x="40" y="40" width="176" height="176" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="80" ry="80" fill="#8E3131"/>
+  <path d="M202 268L432 78V255L202 445V268Z" fill="#FFFFFF" fill-opacity="0.6"/>
+  <path d="M79 256L309 66V242L79 432V256Z" fill="#FFFFFF"/>
+</svg>
+</svg>

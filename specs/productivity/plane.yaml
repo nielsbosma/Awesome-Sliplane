@@ -12,7 +12,7 @@ x-upstream: https://github.com/makeplane/plane/tree/preview/deployments/aio/comm
 app:
   name: Plane
   description: Open source project management for tracking issues, sprints (cycles), modules, pages and roadmaps. An alternative to Jira, Linear and Asana.
-  icon: https://raw.githubusercontent.com/makeplane/plane/preview/apps/web/app/assets/favicon/apple-touch-icon.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/plane.svg
   docs: https://developers.plane.so/self-hosting/methods/docker-aio
   source: https://github.com/makeplane/plane
 

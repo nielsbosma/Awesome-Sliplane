@@ -4,7 +4,7 @@ version: 1
 app:
   name: Kestra
   description: Open source orchestration for data pipelines, infrastructure and business workflows, declared in YAML and built in a web UI with hundreds of plugins.
-  icon: https://raw.githubusercontent.com/kestra-io/kestra/v2.0.6/ui/public/favicon-192x192.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/kestra.svg
   docs: https://kestra.io/docs/installation/docker-compose
   source: https://github.com/kestra-io/kestra
 

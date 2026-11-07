@@ -4,7 +4,7 @@ version: 1
 app:
   name: Matomo
   description: Open source web analytics that gives you full ownership of your data. A Google Analytics alternative with goals, funnels, heatmaps via plugins and GDPR tools.
-  icon: https://raw.githubusercontent.com/matomo-org/matomo/5.x-dev/plugins/CoreHome/images/applogo_732.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/matomo.svg
   docs: https://hub.docker.com/_/matomo
   source: https://github.com/matomo-org/matomo
 

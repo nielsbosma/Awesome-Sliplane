@@ -10,7 +10,7 @@ x-upstream: https://github.com/penpot/penpot/blob/2.18.3/docker/images/docker-co
 app:
   name: Penpot
   description: Open-source design and prototyping platform for teams, an alternative to Figma, built on open standards like SVG, CSS and HTML.
-  icon: https://raw.githubusercontent.com/penpot/penpot/develop/frontend/resources/images/favicon.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/penpot.svg
   docs: https://help.penpot.app/technical-guide/getting-started/docker/
   source: https://github.com/penpot/penpot
 

@@ -4,7 +4,7 @@ version: 1
 app:
   name: InvoiceShelf
   description: Open-source invoicing and expense tracking for freelancers and small businesses, with estimates, recurring invoices, payments and a customer portal.
-  icon: https://raw.githubusercontent.com/InvoiceShelf/InvoiceShelf/2.4.6/public/favicons/android-chrome-512x512.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/invoiceshelf.svg
   docs: https://github.com/InvoiceShelf/docker
   source: https://github.com/InvoiceShelf/InvoiceShelf
 

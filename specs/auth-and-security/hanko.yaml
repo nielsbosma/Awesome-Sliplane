@@ -4,6 +4,7 @@ version: 1
 app:
   name: Hanko
   description: Open source authentication backend with passkeys, passcodes, passwords, social logins and MFA, used with the Hanko Elements web components in your own app.
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/hanko.svg
   docs: https://github.com/teamhanko/hanko/blob/main/backend/README.md
   source: https://github.com/teamhanko/hanko
 

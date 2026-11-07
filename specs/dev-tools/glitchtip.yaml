@@ -4,7 +4,7 @@ version: 1
 app:
   name: GlitchTip
   description: Open source error tracking, performance and uptime monitoring that works with Sentry SDKs, backed by Postgres and Redis.
-  icon: https://gitlab.com/glitchtip/glitchtip-frontend/-/raw/master/src/assets/images/glitchtip-logo-collasped.svg
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/glitchtip.svg
   docs: https://glitchtip.com/documentation/install
   source: https://github.com/glitchtip/glitchtip
 

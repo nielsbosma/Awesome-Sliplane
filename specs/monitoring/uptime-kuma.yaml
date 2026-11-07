@@ -4,7 +4,7 @@ version: 1
 app:
   name: Uptime Kuma
   description: A self-hosted monitoring tool with status pages and notifications.
-  icon: https://raw.githubusercontent.com/louislam/uptime-kuma/master/public/icon.svg
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/uptime-kuma.svg
   docs: https://github.com/louislam/uptime-kuma/wiki
   source: https://github.com/louislam/uptime-kuma
 

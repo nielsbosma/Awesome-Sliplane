@@ -4,7 +4,7 @@ version: 1
 app:
   name: Stirling-PDF
   description: Self-hosted PDF toolkit with 50+ tools to merge, split, convert, compress, OCR, sign, redact and edit PDFs in the browser. Files are processed on your server.
-  icon: https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/main/docs/stirling.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/stirling-pdf.svg
   docs: https://docs.stirlingpdf.com/
   source: https://github.com/Stirling-Tools/Stirling-PDF
 

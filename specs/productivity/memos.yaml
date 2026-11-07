@@ -4,7 +4,7 @@ version: 1
 app:
   name: Memos
   description: Lightweight, privacy-first note-taking service for quick Markdown notes, tags, attachments and a timeline you can share or keep private.
-  icon: https://raw.githubusercontent.com/usememos/memos/main/web/public/logo.webp
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/memos.svg
   docs: https://usememos.com/docs/install
   source: https://github.com/usememos/memos
 

@@ -4,7 +4,7 @@ version: 1
 app:
   name: pretix
   description: Open-source ticket shop for conferences, concerts, workshops and festivals, with seating plans, vouchers, payment providers, invoices and check-in apps.
-  icon: https://raw.githubusercontent.com/pretix/pretix/v2026.8.0/src/pretix/static/pretixbase/img/icons/android-chrome-512x512.png
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/pretix.svg
   docs: https://docs.pretix.eu/self-hosting/installation/docker_smallscale/
   source: https://github.com/pretix/pretix
 

@@ -11,6 +11,7 @@ version: 1
 app:
   name: Trieve
   description: Search, recommendations and RAG API with hybrid vector and BM25 search, plus a dashboard to manage datasets and API keys.
+  icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/trieve.svg
   docs: https://github.com/devflowinc/trieve#self-hosting
   source: https://github.com/devflowinc/trieve
 
