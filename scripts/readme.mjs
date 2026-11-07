@@ -38,7 +38,7 @@ for (const category of readdirSync(join(root, "specs")).sort()) {
   const apps = readdirSync(join(root, "specs", category))
     .filter((f) => f.endsWith(".yaml"))
     .map((file) => {
-      const yaml = readFileSync(join(root, "specs", category, file), "utf8");
+      const yaml = readFileSync(join(root, "specs", category, file), "utf8").replace(/\r\n/g, "\n");
       const path = `specs/${category}/${file}`;
       const declared = /^ {2}category: (.*?)\r?$/m.exec(yaml)?.[1];
       if (declared !== titles[category])
