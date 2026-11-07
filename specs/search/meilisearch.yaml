@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/meilisearch.svg
   docs: https://www.meilisearch.com/docs/learn/self_hosted/install_meilisearch_locally
   source: https://github.com/meilisearch/meilisearch
+  category: Search
 
 server:
   minimum: base

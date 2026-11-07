@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/litellm.svg
   docs: https://docs.litellm.ai/docs/proxy/deploy
   source: https://github.com/BerriAI/litellm
+  category: AI
 
 server:
   minimum: base

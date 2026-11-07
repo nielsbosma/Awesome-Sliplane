@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/directus.svg
   docs: https://directus.com/docs/self-hosting/overview
   source: https://github.com/directus/directus
+  category: CMS
 
 server:
   minimum: base

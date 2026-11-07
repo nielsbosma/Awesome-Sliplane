@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/growchief.svg
   docs: https://docs.growchief.com
   source: https://github.com/growchief/growchief
+  category: Marketing
 
 server:
   minimum: medium

@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/docmost.svg
   docs: https://docmost.com/docs/installation
   source: https://github.com/docmost/docmost
+  category: Productivity
 
 server:
   minimum: base

@@ -12,6 +12,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/onlyoffice.svg
   docs: https://helpcenter.onlyoffice.com/docs/installation/docs-community-install-docker.aspx
   source: https://github.com/ONLYOFFICE/DocumentServer
+  category: Productivity
 
 server:
   minimum: medium

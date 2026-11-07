@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/wekan.svg
   docs: https://github.com/wekan/wekan/tree/main/docs
   source: https://github.com/wekan/wekan
+  category: Productivity
 
 server:
   minimum: base

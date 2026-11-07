@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/authentik.svg
   docs: https://docs.goauthentik.io/install-config/install/docker-compose/
   source: https://github.com/goauthentik/authentik
+  category: Auth and Security
 
 server:
   minimum: base

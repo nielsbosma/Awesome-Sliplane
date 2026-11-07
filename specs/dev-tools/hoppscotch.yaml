@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/hoppscotch.svg
   docs: https://docs.hoppscotch.io/documentation/self-host/community-edition/install-and-build
   source: https://github.com/hoppscotch/hoppscotch
+  category: Developer Tools
 
 server:
   minimum: base

@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/appsmith.svg
   docs: https://docs.appsmith.com/getting-started/setup/installation-guides/docker
   source: https://github.com/appsmithorg/appsmith
+  category: Low-Code
 
 server:
   minimum: medium

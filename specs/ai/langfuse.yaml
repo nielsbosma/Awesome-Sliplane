@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/langfuse.svg
   docs: https://langfuse.com/self-hosting/deployment/docker-compose
   source: https://github.com/langfuse/langfuse
+  category: AI
 
 server:
   minimum: large

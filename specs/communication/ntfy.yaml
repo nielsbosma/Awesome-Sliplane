@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/ntfy.svg
   docs: https://docs.ntfy.sh/install/
   source: https://github.com/binwiederhier/ntfy
+  category: Communication
 
 server:
   minimum: starter

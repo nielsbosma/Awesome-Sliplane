@@ -13,6 +13,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/penpot.svg
   docs: https://help.penpot.app/technical-guide/getting-started/docker/
   source: https://github.com/penpot/penpot
+  category: Productivity
 
 server:
   minimum: medium

@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/healthchecks.svg
   docs: https://healthchecks.io/docs/self_hosted_docker/
   source: https://github.com/healthchecks/healthchecks
+  category: Monitoring
 
 server:
   minimum: starter

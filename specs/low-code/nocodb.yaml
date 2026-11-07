@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/nocodb.svg
   docs: https://nocodb.com/docs/self-hosting/installation/docker
   source: https://github.com/nocodb/nocodb
+  category: Low-Code
 
 server:
   minimum: base

@@ -17,6 +17,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/appflowy.svg
   docs: https://appflowy.com/docs/Self-hosting-AppFlowy
   source: https://github.com/AppFlowy-IO/AppFlowy
+  category: Productivity
 
 server:
   minimum: medium

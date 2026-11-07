@@ -12,6 +12,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/cal-com.svg
   docs: https://cal.com/docs/self-hosting/docker
   source: https://github.com/calcom/cal.com
+  category: Productivity
 
 server:
   minimum: base

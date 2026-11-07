@@ -11,6 +11,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/documenso.svg
   docs: https://docs.documenso.com/docs/self-hosting/deployment/docker
   source: https://github.com/documenso/documenso
+  category: Productivity
 
 server:
   minimum: base

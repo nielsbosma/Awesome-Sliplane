@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/tolgee.svg
   docs: https://docs.tolgee.io/platform/self_hosting/getting_started
   source: https://github.com/tolgee/tolgee-platform
+  category: Developer Tools
 
 server:
   minimum: medium

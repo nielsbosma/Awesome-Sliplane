@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/supertokens.svg
   docs: https://supertokens.com/docs/deployment/self-host-supertokens
   source: https://github.com/supertokens/supertokens-core
+  category: Auth and Security
 
 server:
   minimum: starter

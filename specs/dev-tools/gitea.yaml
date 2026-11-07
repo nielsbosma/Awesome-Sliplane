@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/gitea.svg
   docs: https://docs.gitea.com/installation/install-with-docker-rootless
   source: https://github.com/go-gitea/gitea
+  category: Developer Tools
 
 server:
   minimum: base

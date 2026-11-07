@@ -10,6 +10,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/mealie.svg
   docs: https://docs.mealie.io/documentation/getting-started/installation/postgres/
   source: https://github.com/mealie-recipes/mealie
+  category: Productivity
 
 server:
   minimum: base

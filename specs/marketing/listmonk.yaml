@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/listmonk.svg
   docs: https://listmonk.app/docs/installation/
   source: https://github.com/knadh/listmonk
+  category: Marketing
 
 server:
   minimum: starter

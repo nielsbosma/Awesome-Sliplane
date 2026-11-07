@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/bentopdf.svg
   docs: https://github.com/alam00000/bentopdf#readme
   source: https://github.com/alam00000/bentopdf
+  category: Productivity
 
 server:
   minimum: starter
