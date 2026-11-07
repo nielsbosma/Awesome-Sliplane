@@ -40,6 +40,9 @@ for (const category of readdirSync(join(root, "specs")).sort()) {
     .map((file) => {
       const yaml = readFileSync(join(root, "specs", category, file), "utf8");
       const path = `specs/${category}/${file}`;
+      const declared = /^ {2}category: (.*?)\r?$/m.exec(yaml)?.[1];
+      if (declared !== titles[category])
+        throw new Error(`${path}: set app.category to "${titles[category]}" to match its folder, not "${declared ?? ""}"`);
       return { name: appField(yaml, "name"), description: appField(yaml, "description"), path, logo: `logos/${file.replace(/\.yaml$/, "")}.svg` };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -65,7 +68,7 @@ ${table}
 
 ## Adding an App
 
-1. Add \`specs/<category>/<app>.yaml\` (see the [spec reference](https://github.com/nielsbosma/sliplane-deployer#sliplaneyaml)).
+1. Add \`specs/<category>/<app>.yaml\` (see the [spec reference](https://github.com/nielsbosma/sliplane-deployer#sliplaneyaml)), with \`app.category\` set to its folder's title in this README, such as \`Developer Tools\` for \`dev-tools\`. The deployer's start page groups apps by it.
 2. Check it from a [deployer](https://github.com/nielsbosma/sliplane-deployer) checkout with \`node packages/cli/src/bin.ts lint <path to the spec>\`.
 3. Add its logo to [logos/sources.json](logos/sources.json) and run \`node scripts/logos.mjs <app>\` (see [logos/README.md](logos/README.md)).
 4. Run \`node scripts/readme.mjs\` to update this list.

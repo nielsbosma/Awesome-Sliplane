@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/nextcloud.svg
   docs: https://github.com/nextcloud/docker
   source: https://github.com/nextcloud/server
+  category: Productivity
 
 server:
   minimum: base

@@ -10,6 +10,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/vikunja.svg
   docs: https://vikunja.io/docs/installing/
   source: https://github.com/go-vikunja/vikunja
+  category: Productivity
 
 server:
   minimum: starter

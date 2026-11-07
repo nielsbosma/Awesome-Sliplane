@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/pretix.svg
   docs: https://docs.pretix.eu/self-hosting/installation/docker_smallscale/
   source: https://github.com/pretix/pretix
+  category: Commerce
 
 server:
   minimum: base

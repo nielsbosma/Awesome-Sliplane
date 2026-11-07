@@ -10,6 +10,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/mautic.svg
   docs: https://github.com/mautic/docker-mautic
   source: https://github.com/mautic/mautic
+  category: Marketing
 
 server:
   minimum: base

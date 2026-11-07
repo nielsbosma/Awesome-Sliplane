@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/memos.svg
   docs: https://usememos.com/docs/install
   source: https://github.com/usememos/memos
+  category: Productivity
 
 server:
   minimum: starter

@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/compreface.svg
   docs: https://github.com/exadel-inc/CompreFace/blob/master/docs/Configuration.md
   source: https://github.com/exadel-inc/CompreFace
+  category: AI
 
 server:
   # The API (Java), admin (Java) and ML core (Python) share one container.

@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/searxng.svg
   docs: https://docs.searxng.org/admin/installation-docker.html
   source: https://github.com/searxng/searxng
+  category: Search
 
 server:
   minimum: starter

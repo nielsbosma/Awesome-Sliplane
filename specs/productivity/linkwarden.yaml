@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/linkwarden.svg
   docs: https://docs.linkwarden.app/self-hosting/setup
   source: https://github.com/linkwarden/linkwarden
+  category: Productivity
 
 server:
   minimum: base

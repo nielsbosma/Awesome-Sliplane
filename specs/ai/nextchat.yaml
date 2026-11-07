@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/nextchat.svg
   docs: https://github.com/ChatGPTNextWeb/NextChat#environment-variables
   source: https://github.com/ChatGPTNextWeb/NextChat
+  category: AI
 
 server:
   minimum: starter

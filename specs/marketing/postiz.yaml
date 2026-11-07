@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/postiz.svg
   docs: https://docs.postiz.com/quickstart
   source: https://github.com/gitroomhq/postiz-app
+  category: Marketing
 
 server:
   minimum: medium

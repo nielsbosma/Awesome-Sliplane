@@ -15,6 +15,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/plane.svg
   docs: https://developers.plane.so/self-hosting/methods/docker-aio
   source: https://github.com/makeplane/plane
+  category: Productivity
 
 server:
   minimum: medium

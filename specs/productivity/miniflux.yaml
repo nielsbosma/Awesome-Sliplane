@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/miniflux.svg
   docs: https://miniflux.app/docs/docker.html
   source: https://github.com/miniflux/v2
+  category: Productivity
 
 server:
   minimum: starter

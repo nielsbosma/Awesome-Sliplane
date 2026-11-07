@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/it-tools.svg
   docs: https://github.com/CorentinTh/it-tools
   source: https://github.com/CorentinTh/it-tools
+  category: Developer Tools
 
 server:
   minimum: starter

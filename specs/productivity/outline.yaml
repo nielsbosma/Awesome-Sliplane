@@ -11,6 +11,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/outline.svg
   docs: https://docs.getoutline.com/s/hosting/doc/docker-7pfeLP5a8t
   source: https://github.com/outline/outline
+  category: Productivity
 
 server:
   minimum: base

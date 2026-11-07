@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/open-webui.svg
   docs: https://docs.openwebui.com/reference/env-configuration
   source: https://github.com/open-webui/open-webui
+  category: AI
 
 server:
   minimum: base

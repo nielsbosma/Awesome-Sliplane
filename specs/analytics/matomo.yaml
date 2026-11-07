@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/matomo.svg
   docs: https://hub.docker.com/_/matomo
   source: https://github.com/matomo-org/matomo
+  category: Analytics
 
 server:
   minimum: base

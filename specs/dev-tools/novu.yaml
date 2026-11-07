@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/novu.svg
   docs: https://docs.novu.co/community/self-hosting-novu/deploy-with-docker
   source: https://github.com/novuhq/novu
+  category: Developer Tools
 
 server:
   minimum: medium

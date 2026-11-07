@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/n8n.svg
   docs: https://docs.n8n.io/hosting/
   source: https://github.com/n8n-io/n8n
+  category: Automation
 
 server:
   minimum: base

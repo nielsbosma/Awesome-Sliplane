@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/mattermost.svg
   docs: https://docs.mattermost.com/deployment-guide/server/deploy-containers.html
   source: https://github.com/mattermost/mattermost
+  category: Communication
 
 server:
   minimum: base

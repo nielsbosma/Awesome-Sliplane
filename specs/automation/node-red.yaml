@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/node-red.svg
   docs: https://nodered.org/docs/getting-started/docker
   source: https://github.com/node-red/node-red
+  category: Automation
 
 server:
   minimum: starter

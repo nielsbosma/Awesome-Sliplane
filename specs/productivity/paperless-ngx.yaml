@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/paperless-ngx.svg
   docs: https://docs.paperless-ngx.com/setup/
   source: https://github.com/paperless-ngx/paperless-ngx
+  category: Productivity
 
 server:
   minimum: base

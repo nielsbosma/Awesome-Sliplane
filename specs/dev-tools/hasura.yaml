@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/hasura.svg
   docs: https://hasura.io/docs/2.0/deployment/deployment-guides/docker/
   source: https://github.com/hasura/graphql-engine
+  category: Developer Tools
 
 server:
   minimum: base

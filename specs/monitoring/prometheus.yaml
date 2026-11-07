@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/prometheus.svg
   docs: https://prometheus.io/docs/prometheus/latest/installation/
   source: https://github.com/prometheus/prometheus
+  category: Monitoring
 
 server:
   minimum: base

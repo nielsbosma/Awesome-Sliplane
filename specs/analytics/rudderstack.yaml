@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/rudderstack.svg
   docs: https://www.rudderstack.com/docs/get-started/rudderstack-open-source/data-plane-setup/docker/
   source: https://github.com/rudderlabs/rudder-server
+  category: Analytics
 
 server:
   minimum: base

@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/tooljet.svg
   docs: https://docs.tooljet.com/docs/setup/docker
   source: https://github.com/ToolJet/ToolJet
+  category: Low-Code
 
 server:
   minimum: medium

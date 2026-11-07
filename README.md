@@ -128,7 +128,7 @@ Every spec lives in [specs/](specs), grouped by category. Images are pinned to a
 
 ## Adding an App
 
-1. Add `specs/<category>/<app>.yaml` (see the [spec reference](https://github.com/nielsbosma/sliplane-deployer#sliplaneyaml)).
+1. Add `specs/<category>/<app>.yaml` (see the [spec reference](https://github.com/nielsbosma/sliplane-deployer#sliplaneyaml)), with `app.category` set to its folder's title in this README, such as `Developer Tools` for `dev-tools`. The deployer's start page groups apps by it.
 2. Check it from a [deployer](https://github.com/nielsbosma/sliplane-deployer) checkout with `node packages/cli/src/bin.ts lint <path to the spec>`.
 3. Add its logo to [logos/sources.json](logos/sources.json) and run `node scripts/logos.mjs <app>` (see [logos/README.md](logos/README.md)).
 4. Run `node scripts/readme.mjs` to update this list.

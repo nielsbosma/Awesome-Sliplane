@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/firefly-iii.svg
   docs: https://docs.firefly-iii.org/how-to/firefly-iii/installation/docker/
   source: https://github.com/firefly-iii/firefly-iii
+  category: Finance
 
 server:
   minimum: base

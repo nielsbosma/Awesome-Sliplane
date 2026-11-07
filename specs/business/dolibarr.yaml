@@ -7,6 +7,7 @@ app:
   icon: https://raw.githubusercontent.com/nielsbosma/Awesome-Sliplane/main/logos/dolibarr.svg
   docs: https://hub.docker.com/r/dolibarr/dolibarr
   source: https://github.com/Dolibarr/dolibarr
+  category: Business
 
 server:
   minimum: base
