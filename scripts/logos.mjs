@@ -72,9 +72,10 @@ function imageType(buf) {
 // Text tiles: the name in a system sans on one shared colour, sized to fit.
 function textTile(name) {
   const words = name.split(/\s+/);
-  const lines = words.length > 1 && name.length > 9 ? [words.slice(0, Math.ceil(words.length / 2)).join(" "), words.slice(Math.ceil(words.length / 2)).join(" ")] : [name];
+  // One word per line once the name is long (at most three lines), so long names stay large.
+  const lines = name.length <= 9 || words.length === 1 ? [name] : words.length <= 3 ? words : [words.slice(0, 2).join(" "), words.slice(2).join(" ")];
   const longest = Math.max(...lines.map((l) => l.length));
-  const fontSize = Math.min(64, Math.floor(200 / (longest * 0.58)));
+  const fontSize = Math.min(64, Math.floor(196 / (longest * 0.62)));
   const lineHeight = fontSize * 1.1;
   const top = SIZE / 2 - ((lines.length - 1) * lineHeight) / 2;
   const text = lines
