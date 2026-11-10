@@ -23,7 +23,7 @@ addons:
 databases:
   db:
     engine: postgres
-    version: 15
+    version: 18
     database: frs
 
 services:

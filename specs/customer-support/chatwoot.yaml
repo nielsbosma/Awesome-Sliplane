@@ -29,7 +29,7 @@ addons:
 databases:
   db:
     engine: postgres
-    version: 16
+    version: 18
     extensions: [vector]
   redis:
     engine: redis

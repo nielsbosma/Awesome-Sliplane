@@ -25,7 +25,7 @@ addons:
 databases:
   db:
     engine: postgres
-    version: 17
+    version: 18
 
 services:
   # Core endpoint that apps and users talk to (port 3001).

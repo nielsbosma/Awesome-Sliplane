@@ -23,7 +23,7 @@ inputs:
 databases:
   jobsdb:
     engine: postgres
-    version: 15
+    version: 18
     database: jobsdb
 
 services:
