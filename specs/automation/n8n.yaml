@@ -39,7 +39,7 @@ secrets:
 databases:
   db:
     engine: postgres
-    version: 17
+    version: 18
 
 services:
   n8n:

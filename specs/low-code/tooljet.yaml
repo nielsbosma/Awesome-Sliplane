@@ -27,7 +27,7 @@ addons:
 databases:
   db:
     engine: postgres
-    version: 16
+    version: 18
     database: tooljet_production
 
 services:
